@@ -13,11 +13,30 @@ dependencies:
     sdk: flutter
   cupertino_icons: ^1.0.8
   provider: ^6.1.2
+  geolocator: ^13.0.2
+  flutter_local_notifications: ^18.0.1
+  qr_flutter: ^4.1.0
+  intl: ^0.20.2
+  fl_chart: ^0.70.2
+  pdf: ^3.11.1
+  printing: ^5.13.2
+  google_generative_ai: ^0.4.6
+  shared_preferences: ^2.3.3
+  url_launcher: ^6.3.1
 
 dev_dependencies:
   flutter_test:
     sdk: flutter
   flutter_lints: ^6.0.0
+  flutter_launcher_icons: ^0.14.3
+
+flutter_launcher_icons:
+  android: true
+  ios: true
+  image_path: 'assets/icons/app_icon.png'
+  min_sdk_android: 21
+  adaptive_icon_background: '#800000'
+  adaptive_icon_foreground: 'assets/icons/app_icon.png'
 
 flutter:
   uses-material-design: true

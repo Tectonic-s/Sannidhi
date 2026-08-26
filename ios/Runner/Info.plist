@@ -4,6 +4,19 @@
 <dict>
 	<key>CADisableMinimumFrameDurationOnPhone</key>
 	<true/>
+	<!-- Location permissions -->
+	<key>NSLocationWhenInUseUsageDescription</key>
+	<string>Sannidhi needs your location to detect when you enter or leave the temple premises for live footfall tracking.</string>
+	<key>NSLocationAlwaysAndWhenInUseUsageDescription</key>
+	<string>Sannidhi needs background location access to track temple footfall even when the app is closed, so you don't need to use your phone inside the temple.</string>
+	<key>NSLocationAlwaysUsageDescription</key>
+	<string>Sannidhi needs background location access to track temple footfall even when the app is closed.</string>
+	<!-- Background modes -->
+	<key>UIBackgroundModes</key>
+	<array>
+		<string>location</string>
+		<string>fetch</string>
+	</array>
 	<key>CFBundleDevelopmentRegion</key>
 	<string>$(DEVELOPMENT_LANGUAGE)</string>
 	<key>CFBundleDisplayName</key>
