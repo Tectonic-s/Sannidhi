@@ -12,8 +12,11 @@ import 'presentation/views/donation/donation_screen.dart';
 import 'presentation/views/festivals/festivals_screen.dart';
 import 'presentation/views/home/home_screen.dart';
 import 'presentation/views/services/services_screen.dart';
+import 'providers/accessibility_provider.dart';
+import 'providers/user_activity_provider.dart';
 
-void main() {
+void main() async {
+  WidgetsFlutterBinding.ensureInitialized();
   runApp(const SannidhiApp());
 }
 
@@ -29,9 +32,8 @@ class _SannidhiAppState extends State<SannidhiApp> {
 
   void _toggleLocale() {
     setState(() {
-      _locale = _locale.languageCode == 'en'
-          ? const Locale('ta')
-          : const Locale('en');
+      _locale =
+          _locale.languageCode == 'en' ? const Locale('ta') : const Locale('en');
     });
   }
 
@@ -39,26 +41,54 @@ class _SannidhiAppState extends State<SannidhiApp> {
   Widget build(BuildContext context) {
     return MultiProvider(
       providers: [
-        ChangeNotifierProvider(create: (_) => MockCrowdRepository()),
+        ChangeNotifierProvider(create: (_) {
+          final repo = MockCrowdRepository();
+          repo.initGeofence();
+          return repo;
+        }),
         ChangeNotifierProvider(create: (_) => MockFestivalRepository()),
         ChangeNotifierProvider(create: (_) => MockShuttleRepository()),
+        ChangeNotifierProvider(create: (_) => UserActivityProvider()),
+        ChangeNotifierProvider(create: (_) => AccessibilityProvider()),
       ],
-      child: MaterialApp(
-        title: 'Sannidhi',
-        debugShowCheckedModeBanner: false,
-        theme: AppTheme.lightTheme,
-        locale: _locale,
-        localizationsDelegates: const [
-          AppLocalizations.delegate,
-          GlobalMaterialLocalizations.delegate,
-          GlobalWidgetsLocalizations.delegate,
-          GlobalCupertinoLocalizations.delegate,
-        ],
-        supportedLocales: const [
-          Locale('en'),
-          Locale('ta'),
-        ],
-        home: MainNavigationScreen(onToggleLocale: _toggleLocale),
+      child: Consumer<AccessibilityProvider>(
+        builder: (ctx, access, child) => MaterialApp(
+          title: 'Sannidhi',
+          debugShowCheckedModeBanner: false,
+          theme: access.isElderlyMode
+              ? _elderlyTheme(access)
+              : AppTheme.lightTheme,
+          locale: _locale,
+          localizationsDelegates: const [
+            AppLocalizations.delegate,
+            GlobalMaterialLocalizations.delegate,
+            GlobalWidgetsLocalizations.delegate,
+            GlobalCupertinoLocalizations.delegate,
+          ],
+          supportedLocales: const [Locale('en'), Locale('ta')],
+          home: MainNavigationScreen(onToggleLocale: _toggleLocale),
+        ),
+      ),
+    );
+  }
+
+  ThemeData _elderlyTheme(AccessibilityProvider access) {
+    return AppTheme.lightTheme.copyWith(
+      scaffoldBackgroundColor: access.backgroundColor,
+      colorScheme: ColorScheme.fromSeed(
+        seedColor: access.primaryColor,
+        brightness: Brightness.light,
+      ),
+      elevatedButtonTheme: ElevatedButtonThemeData(
+        style: ElevatedButton.styleFrom(
+          backgroundColor: access.primaryColor,
+          foregroundColor: Colors.white,
+          minimumSize: Size(0, access.minTouchTarget),
+          textStyle: const TextStyle(
+              fontSize: 16, fontWeight: FontWeight.w700),
+          shape:
+              RoundedRectangleBorder(borderRadius: BorderRadius.circular(12)),
+        ),
       ),
     );
   }
@@ -66,7 +96,6 @@ class _SannidhiAppState extends State<SannidhiApp> {
 
 class MainNavigationScreen extends StatefulWidget {
   final VoidCallback onToggleLocale;
-
   const MainNavigationScreen({super.key, required this.onToggleLocale});
 
   @override
@@ -129,7 +158,6 @@ class _MainNavigationScreenState extends State<MainNavigationScreen> {
 class _NavIcon extends StatelessWidget {
   final IconData icon;
   final bool selected;
-
   const _NavIcon({required this.icon, required this.selected});
 
   @override
@@ -149,7 +177,6 @@ class _NavIcon extends StatelessWidget {
 
 class _CenterNavIcon extends StatelessWidget {
   final bool selected;
-
   const _CenterNavIcon({required this.selected});
 
   @override
@@ -158,14 +185,14 @@ class _CenterNavIcon extends StatelessWidget {
       width: 48,
       height: 32,
       decoration: BoxDecoration(
-        color: selected ? AppTheme.primaryColor : AppTheme.primaryColor.withValues(alpha: 0.15),
+        color: selected
+            ? AppTheme.primaryColor
+            : AppTheme.primaryColor.withValues(alpha: 0.15),
         borderRadius: BorderRadius.circular(16),
       ),
-      child: Icon(
-        Icons.home,
-        size: 24,
-        color: selected ? Colors.white : AppTheme.primaryColor,
-      ),
+      child: Icon(Icons.home,
+          size: 24,
+          color: selected ? Colors.white : AppTheme.primaryColor),
     );
   }
 }

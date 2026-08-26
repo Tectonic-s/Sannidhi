@@ -3,128 +3,188 @@ import 'package:provider/provider.dart';
 
 import '../../../core/constants/app_theme.dart';
 import '../../../core/l10n/app_localizations.dart';
+import '../../../core/widgets/announcement_ticker.dart';
+import '../../../core/widgets/crowd_forecaster_chart.dart';
 import '../../../core/widgets/custom_app_bar.dart';
-import '../../../core/widgets/high_contrast_widgets.dart';
 import '../../../data/repositories/mock_crowd_repository.dart';
 import '../../../data/repositories/mock_festival_repository.dart';
-import '../bookings/bookings_screen.dart';
-import '../donation/donation_screen.dart';
-import '../services/services_screen.dart';
+import '../ai_assistant_dialog.dart';
 
 class HomeScreen extends StatelessWidget {
   final VoidCallback onToggleLocale;
-
   const HomeScreen({super.key, required this.onToggleLocale});
 
   @override
   Widget build(BuildContext context) {
+    final isTamil = AppLocalizations.of(context).currentLocale == 'ta';
     return Scaffold(
       appBar: CustomAppBar(onToggleLocale: onToggleLocale),
-      body: RefreshIndicator(
-        onRefresh: () =>
-            Provider.of<MockCrowdRepository>(context, listen: false)
-                .refreshCrowdData(),
-        child: ListView(
-          padding: const EdgeInsets.all(16),
-          children: [
-            _CrowdStatusCard(),
-            const SizedBox(height: 24),
-            _QuickActionsGrid(onToggleLocale: onToggleLocale),
-            const SizedBox(height: 24),
-            _UpcomingEventsSection(),
-          ],
+      floatingActionButton: FloatingActionButton.extended(
+        onPressed: () => showModalBottomSheet(
+          context: context,
+          isScrollControlled: true,
+          backgroundColor: Colors.transparent,
+          builder: (_) => AiAssistantDialog(isTamil: isTamil),
         ),
+        backgroundColor: AppTheme.primaryColor,
+        icon: const Icon(Icons.chat_bubble_outline, color: Colors.white),
+        label: Text(
+            isTamil ? 'கேள்வி கேளுங்கள்' : 'Ask a Question',
+            style: const TextStyle(
+                color: Colors.white,
+                fontWeight: FontWeight.w700,
+                fontSize: 15)),
+      ),
+      body: Column(
+        children: [
+          const AnnouncementTicker(),
+          Expanded(
+            child: RefreshIndicator(
+              onRefresh: () =>
+                  Provider.of<MockCrowdRepository>(context, listen: false)
+                      .refreshCrowdData(),
+              child: ListView(
+                padding: const EdgeInsets.fromLTRB(16, 16, 16, 100),
+                children: [
+                  _CrowdStatusCard(),
+                  const SizedBox(height: 16),
+                  const CrowdForecasterChart(),
+                  const SizedBox(height: 20),
+                  _UpcomingEventsSection(),
+                ],
+              ),
+            ),
+          ),
+        ],
       ),
     );
   }
 }
+
+// ── Crowd Status Card ─────────────────────────────────────────────────────────
 
 class _CrowdStatusCard extends StatelessWidget {
   @override
   Widget build(BuildContext context) {
     final l10n = AppLocalizations.of(context);
-    final crowd =
-        Provider.of<MockCrowdRepository>(context).getCrowdData();
+    final crowd = Provider.of<MockCrowdRepository>(context).getCrowdData();
+    final isTamil = l10n.currentLocale == 'ta';
 
-    Color statusColor;
-    String emoji;
     final statusKey = crowd.status.toLowerCase().replaceAll(' ', '');
+
+    // Human-friendly labels
+    String bigEmoji;
+    String bigLabel;
+    String subLabel;
+    Color statusColor;
+
     switch (statusKey) {
       case 'low':
+        bigEmoji = '😊';
+        bigLabel = isTamil ? 'கூட்டம் குறைவு' : 'Not Crowded';
+        subLabel = isTamil
+            ? 'இப்போது வரலாம்! வரிசை குறைவாக இருக்கும்.'
+            : 'Good time to visit! Short queue.';
         statusColor = AppColors.success;
-        emoji = '🟢';
         break;
       case 'high':
+        bigEmoji = '😰';
+        bigLabel = isTamil ? 'அதிக கூட்டம்' : 'Very Crowded';
+        subLabel = isTamil
+            ? 'கொஞ்சம் காத்திருக்க வேண்டும். பொறுமையாக வாருங்கள்.'
+            : 'Long queue expected. Please be patient.';
         statusColor = AppColors.error;
-        emoji = '🔴';
         break;
       case 'veryhigh':
+        bigEmoji = '🚨';
+        bigLabel = isTamil ? 'மிக அதிக கூட்டம்' : 'Extremely Crowded';
+        subLabel = isTamil
+            ? 'மிகவும் கூட்டமாக உள்ளது. சற்று நேரம் கழித்து வாருங்கள்.'
+            : 'Very long wait. Try visiting later today.';
         statusColor = Colors.deepPurple;
-        emoji = '🟣';
         break;
       default:
+        bigEmoji = '🙂';
+        bigLabel = isTamil ? 'சாதாரண கூட்டம்' : 'Moderate Crowd';
+        subLabel = isTamil
+            ? 'சாதாரண வரிசை இருக்கும். வரலாம்.'
+            : 'Normal queue. You can visit now.';
         statusColor = AppColors.warning;
-        emoji = '🟡';
     }
 
-    final statusLabel =
-        l10n.translate('${statusKey}Crowd') ?? '${crowd.status} Crowd';
-
     return Container(
-      height: 140,
       padding: const EdgeInsets.all(20),
       decoration: BoxDecoration(
         gradient: LinearGradient(
-          colors: [statusColor, statusColor.withValues(alpha: 0.75)],
+          colors: [statusColor, statusColor.withValues(alpha: 0.8)],
           begin: Alignment.topLeft,
           end: Alignment.bottomRight,
         ),
-        borderRadius: BorderRadius.circular(16),
+        borderRadius: BorderRadius.circular(20),
         boxShadow: [
           BoxShadow(
-            color: statusColor.withValues(alpha: 0.3),
-            blurRadius: 10,
+            color: statusColor.withValues(alpha: 0.35),
+            blurRadius: 12,
             offset: const Offset(0, 4),
           ),
         ],
       ),
-      child: Column(
-        crossAxisAlignment: CrossAxisAlignment.start,
+      child: Row(
         children: [
-          Row(
-            mainAxisAlignment: MainAxisAlignment.spaceBetween,
-            children: [
-              Text(
-                l10n.translate('crowdStatus') ?? 'Crowd Status',
-                style: const TextStyle(color: Colors.white70, fontSize: 14),
-              ),
-              Text(emoji, style: const TextStyle(fontSize: 26)),
-            ],
-          ),
-          const SizedBox(height: 8),
-          Text(
-            statusLabel,
-            style: const TextStyle(
-              color: Colors.white,
-              fontSize: 22,
-              fontWeight: FontWeight.w700,
+          Text(bigEmoji, style: const TextStyle(fontSize: 52)),
+          const SizedBox(width: 16),
+          Expanded(
+            child: Column(
+              crossAxisAlignment: CrossAxisAlignment.start,
+              children: [
+                Text(
+                  bigLabel,
+                  style: TextStyle(
+                      color: Colors.white,
+                      fontSize: isTamil ? 18 : 22,
+                      fontWeight: FontWeight.w800),
+                  overflow: TextOverflow.ellipsis,
+                  maxLines: 1,
+                ),
+                const SizedBox(height: 4),
+                Text(
+                  subLabel,
+                  style: const TextStyle(
+                      color: Colors.white,
+                      fontSize: 13,
+                      height: 1.4),
+                ),
+                const SizedBox(height: 10),
+                Container(
+                  padding:
+                      const EdgeInsets.symmetric(horizontal: 12, vertical: 6),
+                  decoration: BoxDecoration(
+                    color: Colors.white.withValues(alpha: 0.25),
+                    borderRadius: BorderRadius.circular(20),
+                  ),
+                  child: Row(
+                    mainAxisSize: MainAxisSize.min,
+                    children: [
+                      const Icon(Icons.timer_outlined,
+                          color: Colors.white, size: 16),
+                      const SizedBox(width: 6),
+                      Flexible(
+                        child: Text(
+                          isTamil
+                              ? 'காத்திருப்பு: ~${crowd.estimatedWaitMinutes} நிமிடம்'
+                              : 'Wait: ~${crowd.estimatedWaitMinutes} minutes',
+                          style: const TextStyle(
+                              color: Colors.white,
+                              fontSize: 13,
+                              fontWeight: FontWeight.w700),
+                          overflow: TextOverflow.ellipsis,
+                        ),
+                      ),
+                    ],
+                  ),
+                ),
+              ],
             ),
-          ),
-          const SizedBox(height: 8),
-          Row(
-            children: [
-              const Icon(Icons.access_time, color: Colors.white70, size: 16),
-              const SizedBox(width: 6),
-              Text(
-                '${l10n.translate('estWait') ?? 'Est. Wait'}: '
-                '${crowd.estimatedWaitMinutes} '
-                '${l10n.translate('mins') ?? 'Mins'}',
-                style: const TextStyle(
-                    color: Colors.white,
-                    fontSize: 14,
-                    fontWeight: FontWeight.w500),
-              ),
-            ],
           ),
         ],
       ),
@@ -132,77 +192,7 @@ class _CrowdStatusCard extends StatelessWidget {
   }
 }
 
-class _QuickActionsGrid extends StatelessWidget {
-  final VoidCallback onToggleLocale;
-
-  const _QuickActionsGrid({required this.onToggleLocale});
-
-  @override
-  Widget build(BuildContext context) {
-    final l10n = AppLocalizations.of(context);
-
-    final actions = [
-      (
-        Icons.calendar_today,
-        l10n.translate('quickBooking') ?? 'Quick Booking',
-        AppTheme.primaryColor,
-        () => Navigator.push(context,
-            MaterialPageRoute(builder: (_) => BookingsScreen(onToggleLocale: onToggleLocale))),
-      ),
-      (
-        Icons.visibility,
-        l10n.translate('darshan') ?? 'Darshan',
-        AppTheme.accentColor,
-        () => Navigator.push(context,
-            MaterialPageRoute(builder: (_) => BookingsScreen(onToggleLocale: onToggleLocale))),
-      ),
-      (
-        Icons.spa,
-        l10n.translate('services') ?? 'Services',
-        const Color(0xFF6A1B9A),
-        () => Navigator.push(context,
-            MaterialPageRoute(builder: (_) => ServicesScreen(onToggleLocale: onToggleLocale))),
-      ),
-      (
-        Icons.favorite,
-        l10n.translate('donations') ?? 'Donations',
-        AppColors.error,
-        () => Navigator.push(context,
-            MaterialPageRoute(builder: (_) => DonationScreen(onToggleLocale: onToggleLocale))),
-      ),
-    ];
-
-    return Column(
-      crossAxisAlignment: CrossAxisAlignment.start,
-      children: [
-        Text(
-          l10n.translate('quickActions') ?? 'Quick Actions',
-          style: const TextStyle(
-              fontSize: 18,
-              fontWeight: FontWeight.w700,
-              color: AppTheme.textPrimary),
-        ),
-        const SizedBox(height: 12),
-        GridView.count(
-          shrinkWrap: true,
-          physics: const NeverScrollableScrollPhysics(),
-          crossAxisCount: 2,
-          mainAxisSpacing: 12,
-          crossAxisSpacing: 12,
-          childAspectRatio: 2.2,
-          children: actions
-              .map((a) => HighContrastButton(
-                    icon: a.$1,
-                    text: a.$2,
-                    backgroundColor: a.$3,
-                    onPressed: a.$4,
-                  ))
-              .toList(),
-        ),
-      ],
-    );
-  }
-}
+// ── Upcoming Events ───────────────────────────────────────────────────────────
 
 class _UpcomingEventsSection extends StatelessWidget {
   @override
@@ -210,95 +200,102 @@ class _UpcomingEventsSection extends StatelessWidget {
     final l10n = AppLocalizations.of(context);
     final isTamil = l10n.currentLocale == 'ta';
     final festivals =
-        Provider.of<MockFestivalRepository>(context).getUpcomingFestivals();
+        Provider.of<MockFestivalRepository>(context).getUpcomingFestivals(limit: 3);
+
+    if (festivals.isEmpty) return const SizedBox.shrink();
 
     return Column(
       crossAxisAlignment: CrossAxisAlignment.start,
       children: [
         Text(
-          l10n.translate('upcomingEvents') ?? 'Upcoming Events',
+          isTamil ? 'வரும் திருவிழாக்கள்' : 'Upcoming Festivals',
           style: const TextStyle(
-              fontSize: 18,
-              fontWeight: FontWeight.w700,
+              fontSize: 17,
+              fontWeight: FontWeight.w800,
               color: AppTheme.textPrimary),
         ),
         const SizedBox(height: 12),
-        SizedBox(
-          height: 160,
-          child: festivals.isEmpty
-              ? const Center(child: Text('No upcoming events'))
-              : ListView.separated(
-                  scrollDirection: Axis.horizontal,
-                  itemCount: festivals.length,
-                  separatorBuilder: (_, _) => const SizedBox(width: 12),
-                  itemBuilder: (context, i) {
-                    final f = festivals[i];
-                    return HighContrastCard(
-                      width: 180,
-                      height: 160,
-                      child: Padding(
-                        padding: const EdgeInsets.all(12),
-                        child: Column(
-                          crossAxisAlignment: CrossAxisAlignment.start,
-                          children: [
-                            Container(
-                              height: 72,
-                              decoration: BoxDecoration(
-                                color: AppColors.deepSaffron.withValues(alpha: 0.15),
-                                borderRadius: BorderRadius.circular(8),
-                              ),
-                              child: Center(
-                                child: Icon(Icons.temple_hindu,
-                                    size: 36, color: AppColors.deepSaffron),
-                              ),
-                            ),
-                            const SizedBox(height: 8),
-                            Text(
-                              isTamil ? f.tamilName : f.name,
-                              style: const TextStyle(
-                                  fontSize: 13,
-                                  fontWeight: FontWeight.w700,
-                                  color: AppTheme.textPrimary),
-                              maxLines: 1,
-                              overflow: TextOverflow.ellipsis,
-                            ),
-                            const SizedBox(height: 4),
-                            Row(
-                              children: [
-                                const Icon(Icons.calendar_today,
-                                    size: 12, color: AppTheme.textSecondary),
-                                const SizedBox(width: 4),
-                                Text(f.date,
-                                    style: const TextStyle(
-                                        fontSize: 11,
-                                        color: AppTheme.textSecondary)),
-                              ],
-                            ),
-                            if (f.isSpecial) ...[
-                              const SizedBox(height: 4),
-                              Container(
-                                padding: const EdgeInsets.symmetric(
-                                    horizontal: 6, vertical: 2),
-                                decoration: BoxDecoration(
-                                  color: AppColors.error.withValues(alpha: 0.1),
-                                  borderRadius: BorderRadius.circular(4),
-                                ),
-                                child: Text(
-                                  l10n.translate('special') ?? 'Special',
-                                  style: const TextStyle(
-                                      fontSize: 10,
-                                      color: AppColors.error,
-                                      fontWeight: FontWeight.w600),
-                                ),
-                              ),
-                            ],
-                          ],
-                        ),
-                      ),
-                    );
-                  },
+        ...festivals.map((f) {
+          final target = DateTime.tryParse(f.date);
+          final diff = target?.difference(DateTime.now()).inDays;
+          String countdown = '';
+          if (diff != null) {
+            if (diff == 0) {
+              countdown = isTamil ? '🎉 இன்று!' : '🎉 Today!';
+            } else if (diff == 1) {
+              countdown = isTamil ? 'நாளை' : 'Tomorrow';
+            } else {
+              countdown = isTamil ? '$diff நாட்களில்' : 'In $diff days';
+            }
+          }
+
+          return Container(
+            margin: const EdgeInsets.only(bottom: 10),
+            padding: const EdgeInsets.all(14),
+            decoration: BoxDecoration(
+              color: Colors.white,
+              borderRadius: BorderRadius.circular(14),
+              boxShadow: const [
+                BoxShadow(
+                    color: Color(0x0F000000),
+                    blurRadius: 6,
+                    offset: Offset(0, 2))
+              ],
+            ),
+            child: Row(
+              children: [
+                Container(
+                  width: 52,
+                  height: 52,
+                  decoration: BoxDecoration(
+                    color: AppColors.deepSaffron.withValues(alpha: 0.12),
+                    borderRadius: BorderRadius.circular(12),
+                  ),
+                  child: const Center(
+                    child: Text('🛕', style: TextStyle(fontSize: 26)),
+                  ),
                 ),
-        ),
+                const SizedBox(width: 12),
+                Expanded(
+                  child: Column(
+                    crossAxisAlignment: CrossAxisAlignment.start,
+                    children: [
+                      Text(
+                        isTamil ? f.tamilName : f.name,
+                        style: const TextStyle(
+                            fontSize: 15,
+                            fontWeight: FontWeight.w700,
+                            color: AppTheme.textPrimary),
+                      ),
+                      const SizedBox(height: 2),
+                      Text(
+                        f.date,
+                        style: const TextStyle(
+                            fontSize: 12, color: AppTheme.textSecondary),
+                      ),
+                    ],
+                  ),
+                ),
+                if (countdown.isNotEmpty)
+                  Container(
+                    padding: const EdgeInsets.symmetric(
+                        horizontal: 10, vertical: 5),
+                    decoration: BoxDecoration(
+                      color: AppColors.deepSaffron.withValues(alpha: 0.12),
+                      borderRadius: BorderRadius.circular(20),
+                    ),
+                    child: Text(
+                      countdown,
+                      style: const TextStyle(
+                          fontSize: 11,
+                          fontWeight: FontWeight.w700,
+                          color: AppColors.deepSaffron),
+                    ),
+                  ),
+              ],
+            ),
+          );
+        }),
       ],
     );
   }

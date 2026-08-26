@@ -7,7 +7,8 @@ class FestivalModel {
   final bool isSpecial;
   final bool isTamilMonth;
   final String tamilName;
-  
+  final String tamilDescription;
+
   FestivalModel({
     required this.id,
     required this.name,
@@ -17,6 +18,7 @@ class FestivalModel {
     this.isSpecial = false,
     this.isTamilMonth = false,
     required this.tamilName,
+    this.tamilDescription = '',
   });
   
   factory FestivalModel.fromJson(Map<String, dynamic> json) {
@@ -29,6 +31,7 @@ class FestivalModel {
       isSpecial: json['is_special'] as bool? ?? false,
       isTamilMonth: json['is_tamil_month'] as bool? ?? false,
       tamilName: json['tamil_name'] as String,
+      tamilDescription: json['tamil_description'] as String? ?? '',
     );
   }
   
@@ -42,6 +45,7 @@ class FestivalModel {
       'is_special': isSpecial,
       'is_tamil_month': isTamilMonth,
       'tamil_name': tamilName,
+      'tamil_description': tamilDescription,
     };
   }
   
@@ -54,6 +58,7 @@ class FestivalModel {
     bool? isSpecial,
     bool? isTamilMonth,
     String? tamilName,
+    String? tamilDescription,
   }) {
     return FestivalModel(
       id: id ?? this.id,
@@ -64,6 +69,7 @@ class FestivalModel {
       isSpecial: isSpecial ?? this.isSpecial,
       isTamilMonth: isTamilMonth ?? this.isTamilMonth,
       tamilName: tamilName ?? this.tamilName,
+      tamilDescription: tamilDescription ?? this.tamilDescription,
     );
   }
 }
