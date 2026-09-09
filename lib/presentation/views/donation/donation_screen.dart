@@ -5,10 +5,11 @@ import 'package:qr_flutter/qr_flutter.dart';
 import '../../../core/constants/app_theme.dart';
 import '../../../core/l10n/app_localizations.dart';
 import '../../../core/widgets/custom_app_bar.dart';
-import '../../../core/widgets/mock_payment_sheet.dart';
+import '../../../core/services/cashfree_payment_service.dart';
 import '../../../data/models/activity_models.dart';
 import '../../../providers/user_activity_provider.dart';
 import '../../../services/tax_receipt_service.dart';
+import '../payment/cashfree_payment_screen.dart';
 
 class DonationScreen extends StatefulWidget {
   final VoidCallback onToggleLocale;
@@ -118,13 +119,21 @@ class _DonationScreenState extends State<DonationScreen> {
     final l10n = AppLocalizations.of(context);
     final causeLabel = l10n.translate(_selectedCauseKey) ?? _selectedCauseKey;
 
-    showMockPaymentSheet(
+    CashfreePaymentService.instance.startPayment(
       context: context,
       amount: parsed.toDouble(),
-      title: causeLabel,
-      onSuccess: () {
+      description: causeLabel,
+      customerId: 'devotee_${DateTime.now().millisecondsSinceEpoch}',
+      customerName: 'Devotee',
+      customerEmail: 'devotee@sannidhi.app',
+      customerPhone: '9999999999',
+    ).then((result) {
+      if (!mounted) return;
+      if (result.result == CashfreePaymentResult.success) {
         final now = DateTime.now();
-        final txnId = 'TXN${now.millisecondsSinceEpoch.toString().substring(6)}';
+        final txnId = result.orderId.isNotEmpty
+            ? result.orderId
+            : 'TXN${now.millisecondsSinceEpoch.toString().substring(6)}';
         final qr = 'SANNIDHI|DONATION|$txnId|$causeLabel|₹$parsed';
         final receipt = DonationReceiptModel(
           transactionId: txnId,
@@ -146,8 +155,14 @@ class _DonationScreenState extends State<DonationScreen> {
             causeColor: cause.color,
           ),
         );
-      },
-    );
+      } else if (result.result == CashfreePaymentResult.failure) {
+        showCashfreePaymentFailureDialog(
+          context: context,
+          message: result.message,
+          onRetry: _proceedToPay,
+        );
+      }
+    });
   }
 }
 

@@ -3,7 +3,8 @@ import 'package:flutter/material.dart';
 import '../../../core/constants/app_theme.dart';
 import '../../../core/l10n/app_localizations.dart';
 import '../../../core/widgets/custom_app_bar.dart';
-import '../../../core/widgets/mock_payment_sheet.dart';
+import '../../../core/services/cashfree_payment_service.dart';
+import '../payment/cashfree_payment_screen.dart';
 
 class _ServiceItem {
   final IconData icon;
@@ -294,17 +295,37 @@ class _ServiceDetailSheet extends StatelessWidget {
                     return;
                   }
                   Navigator.pop(context);
-                  showMockPaymentSheet(
+                  CashfreePaymentService.instance.startPayment(
                     context: context,
                     amount: service.fee,
-                    title: title,
-                    onSuccess: () {
+                    description: title,
+                    customerId: 'devotee_${DateTime.now().millisecondsSinceEpoch}',
+                    customerName: 'Devotee',
+                    customerEmail: 'devotee@sannidhi.app',
+                    customerPhone: '9999999999',
+                  ).then((result) {
+                    if (!context.mounted) return;
+                    if (result.result == CashfreePaymentResult.success) {
                       ScaffoldMessenger.of(context).showSnackBar(SnackBar(
                         content: Text('$title booked successfully 🙏'),
                         backgroundColor: AppColors.success,
                       ));
-                    },
-                  );
+                    } else if (result.result == CashfreePaymentResult.failure) {
+                      showCashfreePaymentFailureDialog(
+                        context: context,
+                        message: result.message,
+                        onRetry: () => CashfreePaymentService.instance.startPayment(
+                          context: context,
+                          amount: service.fee,
+                          description: title,
+                          customerId: 'devotee_${DateTime.now().millisecondsSinceEpoch}',
+                          customerName: 'Devotee',
+                          customerEmail: 'devotee@sannidhi.app',
+                          customerPhone: '9999999999',
+                        ),
+                      );
+                    }
+                  });
                 },
               ),
             ),

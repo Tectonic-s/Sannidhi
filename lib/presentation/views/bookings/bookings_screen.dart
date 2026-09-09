@@ -1,13 +1,32 @@
+import 'dart:async';
+
 import 'package:flutter/material.dart';
 import 'package:provider/provider.dart';
 
 import '../../../core/constants/app_theme.dart';
 import '../../../core/l10n/app_localizations.dart';
 import '../../../core/widgets/custom_app_bar.dart';
-import '../../../core/widgets/mock_payment_sheet.dart';
+import '../../../core/services/cashfree_payment_service.dart';
 import '../../../core/widgets/ticket_carousel_modal.dart';
 import '../../../data/models/activity_models.dart';
 import '../../../providers/user_activity_provider.dart';
+import '../payment/cashfree_payment_screen.dart';
+
+bool _isSlotPast(String slot) {
+  final parts = slot.split(' ');
+  final timeParts = parts[0].split(':');
+  var hour = int.parse(timeParts[0]);
+  final minute = int.parse(timeParts[1]);
+  final period = parts[1];
+
+  if (period == 'AM' && hour == 12) hour = 0;
+  if (period == 'PM' && hour != 12) hour += 12;
+
+  final now = TimeOfDay.now();
+  final slotMinutes = hour * 60 + minute;
+  final currentMinutes = now.hour * 60 + now.minute;
+  return currentMinutes >= slotMinutes;
+}
 
 class BookingsScreen extends StatefulWidget {
   final VoidCallback onToggleLocale;
@@ -82,6 +101,28 @@ class _BookPassesTab extends StatefulWidget {
 }
 
 class _BookPassesTabState extends State<_BookPassesTab> {
+  Timer? _slotRefreshTimer;
+
+  @override
+  void initState() {
+    super.initState();
+    final firstAvailable = _slots.firstWhere(
+      (slot) => !_isSlotPast(slot),
+      orElse: () => _slots.last,
+    );
+    _shuttleSlot = firstAvailable;
+    _darshanSlot = firstAvailable;
+    _slotRefreshTimer = Timer.periodic(const Duration(minutes: 1), (_) {
+      if (mounted) setState(() {});
+    });
+  }
+
+  @override
+  void dispose() {
+    _slotRefreshTimer?.cancel();
+    super.dispose();
+  }
+
   static const _slots = [
     '06:00 AM', '07:00 AM', '08:00 AM', '08:30 AM',
     '09:00 AM', '09:30 AM', '10:00 AM', '11:00 AM',
@@ -270,12 +311,22 @@ class _BookPassesTabState extends State<_BookPassesTab> {
       );
 
   void _bookShuttle() {
+    if (_isSlotPast(_shuttleSlot)) {
+      _showPastSlotMessage();
+      return;
+    }
     final amount = (_shuttleSeats * 20).toDouble();
-    showMockPaymentSheet(
+    CashfreePaymentService.instance.startPayment(
       context: context,
       amount: amount,
-      title: 'Shuttle Bus Booking',
-      onSuccess: () {
+      description: 'Shuttle Bus Booking',
+      customerId: 'devotee_${DateTime.now().millisecondsSinceEpoch}',
+      customerName: 'Devotee',
+      customerEmail: 'devotee@sannidhi.app',
+      customerPhone: '9999999999',
+    ).then((result) {
+      if (!mounted) return;
+      if (result.result == CashfreePaymentResult.success) {
         final provider = context.read<UserActivityProvider>();
         final bookingId = UserActivityProvider.generateBookingId('SB');
         final now = DateTime.now();
@@ -308,22 +359,52 @@ class _BookPassesTabState extends State<_BookPassesTab> {
           pickupLocation: 'Adivaram Bus Stand',
           dropLocation: 'Hilltop Sannidhi',
         );
-      },
-    );
+      } else if (result.result == CashfreePaymentResult.failure) {
+        showCashfreePaymentFailureDialog(
+          context: context,
+          message: result.message,
+          onRetry: _bookShuttle,
+        );
+      }
+    });
   }
 
   void _bookDarshan() {
+    if (_isSlotPast(_darshanSlot)) {
+      _showPastSlotMessage();
+      return;
+    }
     final type = _darshanTypes[_darshanIdx];
     final total = type.price * _devotees;
     if (total == 0) {
       _saveDarshan(type);
       return;
     }
-    showMockPaymentSheet(
+    CashfreePaymentService.instance.startPayment(
       context: context,
       amount: total.toDouble(),
-      title: type.name,
-      onSuccess: () => _saveDarshan(type),
+      description: type.name,
+      customerId: 'devotee_${DateTime.now().millisecondsSinceEpoch}',
+      customerName: 'Devotee',
+      customerEmail: 'devotee@sannidhi.app',
+      customerPhone: '9999999999',
+    ).then((result) {
+      if (!mounted) return;
+      if (result.result == CashfreePaymentResult.success) {
+        _saveDarshan(type);
+      } else if (result.result == CashfreePaymentResult.failure) {
+        showCashfreePaymentFailureDialog(
+          context: context,
+          message: result.message,
+          onRetry: _bookDarshan,
+        );
+      }
+    });
+  }
+
+  void _showPastSlotMessage() {
+    ScaffoldMessenger.of(context).showSnackBar(
+      const SnackBar(content: Text('This time slot has already passed.')),
     );
   }
 
@@ -522,23 +603,36 @@ class _SlotGrid extends StatelessWidget {
           runSpacing: 8,
           children: slots.map((s) {
             final isSel = s == selected;
+            final isPast = _isSlotPast(s);
             return GestureDetector(
-              onTap: () => onSelect(s),
+              onTap: isPast ? null : () => onSelect(s),
               child: AnimatedContainer(
                 duration: const Duration(milliseconds: 120),
                 padding: const EdgeInsets.symmetric(
                     horizontal: 12, vertical: 8),
                 decoration: BoxDecoration(
-                  color: isSel ? color : Colors.white,
+                    color: isPast
+                      ? Colors.grey.shade100
+                      : isSel
+                        ? color
+                        : Colors.white,
                   border: Border.all(
-                      color: isSel ? color : Colors.grey.shade300),
+                      color: isPast
+                        ? Colors.grey.shade300
+                        : isSel
+                          ? color
+                          : Colors.grey.shade300),
                   borderRadius: BorderRadius.circular(8),
                 ),
                 child: Text(s,
                     style: TextStyle(
                         fontSize: 12,
                         fontWeight: FontWeight.w600,
-                        color: isSel ? Colors.white : AppTheme.textPrimary)),
+                        color: isPast
+                          ? Colors.grey.shade500
+                          : isSel
+                            ? Colors.white
+                            : AppTheme.textPrimary)),
               ),
             );
           }).toList(),
