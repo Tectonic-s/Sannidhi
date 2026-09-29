@@ -1,14 +1,58 @@
+import '../../core/utils/booking_utils.dart';
+
 // Individual ticket — one QR per seat/devotee (BookMyShow style)
 class IndividualTicket {
   final String ticketId;      // e.g. MRD-BUS-8491-1
   final String qrPayload;
   final String ticketLabel;   // e.g. "Ticket 1 of 3"
+  bool isUsed;
+  DateTime? usedAt;
+  String? verifiedBy;
+  String? slotTime;
+  String? date;
 
-  const IndividualTicket({
+  IndividualTicket({
     required this.ticketId,
     required this.qrPayload,
     required this.ticketLabel,
+    this.isUsed = false,
+    this.usedAt,
+    this.verifiedBy,
+    this.slotTime,
+    this.date,
   });
+
+  bool isExpired({String? fallbackSlot, String? fallbackDate, DateTime? now}) {
+    if (isUsed) return false;
+    final s = slotTime ?? fallbackSlot;
+    final d = date ?? fallbackDate;
+    if (s == null && d == null) return false;
+    return isBookingExpired(slotTime: s, date: d, now: now);
+  }
+
+  Map<String, dynamic> toJson() => {
+    'ticketId': ticketId,
+    'qrPayload': qrPayload,
+    'ticketLabel': ticketLabel,
+    'isUsed': isUsed,
+    'usedAt': usedAt?.toIso8601String(),
+    'verifiedBy': verifiedBy,
+    'slotTime': slotTime,
+    'date': date,
+  };
+
+  factory IndividualTicket.fromJson(Map<String, dynamic> json) => IndividualTicket(
+    ticketId: json['ticketId'] ?? json['id'] ?? '',
+    qrPayload: json['qrPayload'] ?? json['qr_payload'] ?? '',
+    ticketLabel: json['ticketLabel'] ?? json['ticket_label'] ?? '',
+    isUsed: json['isUsed'] == true || json['status'] == 'USED',
+    usedAt: json['usedAt'] != null
+        ? DateTime.tryParse(json['usedAt'])
+        : (json['verified_at'] != null ? DateTime.tryParse(json['verified_at']) : null),
+    verifiedBy: json['verifiedBy'] ?? json['verified_by'],
+    slotTime: json['slotTime'] ?? json['slot_time'],
+    date: json['date'],
+  );
 }
 
 // ── Shuttle ───────────────────────────────────────────────────────────────────
@@ -33,6 +77,11 @@ class ShuttleBooking {
     required this.date,
     this.isCancelled = false,
   });
+
+  bool get isAllUsed => tickets.isNotEmpty && tickets.every((t) => t.isUsed);
+  bool get isPartiallyUsed => tickets.any((t) => t.isUsed) && !isAllUsed;
+  int get usedCount => tickets.where((t) => t.isUsed).length;
+  bool get isExpired => !isAllUsed && isBookingExpired(slotTime: slotTime, date: date);
 }
 
 // ── Darshan ───────────────────────────────────────────────────────────────────
@@ -47,7 +96,7 @@ class DarshanBooking {
   final DateTime timestamp;
   final String date;
 
-  const DarshanBooking({
+  DarshanBooking({
     required this.bookingId,
     required this.darshanType,
     required this.slotTime,
@@ -57,6 +106,11 @@ class DarshanBooking {
     required this.timestamp,
     required this.date,
   });
+
+  bool get isAllUsed => tickets.isNotEmpty && tickets.every((t) => t.isUsed);
+  bool get isPartiallyUsed => tickets.any((t) => t.isUsed) && !isAllUsed;
+  int get usedCount => tickets.where((t) => t.isUsed).length;
+  bool get isExpired => !isAllUsed && isBookingExpired(slotTime: slotTime, date: date);
 }
 
 // ── Donation ──────────────────────────────────────────────────────────────────

@@ -24,3 +24,9 @@ ios/Flutter/flutter_export_environment.sh
 .idea/
 .vscode/
 devtools_options.yaml
+
+# Secrets & Environment Keys
+lib/core/constants/api_keys.dart
+.env
+.env.*
+!.env.example

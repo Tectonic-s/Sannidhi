@@ -1,0 +1,29 @@
+{
+  "project_info": {
+    "project_number": "482970667835",
+    "project_id": "sannidhi-79ea7",
+    "storage_bucket": "sannidhi-79ea7.firebasestorage.app"
+  },
+  "client": [
+    {
+      "client_info": {
+        "mobilesdk_app_id": "1:482970667835:android:653b196caffdf42aa2851e",
+        "android_client_info": {
+          "package_name": "com.company.sannidhi"
+        }
+      },
+      "oauth_client": [],
+      "api_key": [
+        {
+          "current_key": "AIzaSyD9eAhIGCkp6WjXhClE2ivJTVYiFS0xPgk"
+        }
+      ],
+      "services": {
+        "appinvite_service": {
+          "other_platform_oauth_client": []
+        }
+      }
+    }
+  ],
+  "configuration_version": "1"
+}

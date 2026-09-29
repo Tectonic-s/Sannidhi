@@ -1,0 +1,6 @@
+// Copy this file to api_keys.dart and paste your real API key below.
+// api_keys.dart is ignored by Git to keep your secrets private.
+
+class ApiKeys {
+  static const String geminiApiKey = 'YOUR_GEMINI_API_KEY_HERE';
+}

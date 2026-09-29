@@ -1,120 +1,335 @@
+import 'dart:async';
 import 'package:flutter/material.dart';
+import 'package:provider/provider.dart';
+import '../../providers/bulletin_provider.dart';
 import '../l10n/app_localizations.dart';
+import 'micro_animations.dart';
 
 class AnnouncementTicker extends StatefulWidget {
   const AnnouncementTicker({super.key});
-
-  static const _messagesEn = [
-    '🔔 Girivalam starts at 6:30 PM today — carry water & wear footwear',
-    '🍛 Free Annadhanam served at Hilltop Mandapam — 11:30 AM to 3:00 PM',
-    '🚗 Senior citizen battery cars operational at Adivaram — No charge',
-    '💧 RO drinking water available at Steps 200, 500 & 830',
-    '🏥 Free First-Aid post open near Adivaram entrance — 24 hours',
-    '📿 Kanda Sashti Kavasam recitation at 7:00 AM & 7:00 PM daily',
-    '🎉 Panguni Uthiram special abhishekam — pre-book at counter 3',
-  ];
-
-  static const _messagesTa = [
-    '🔔 இன்று மாலை 6:30 மணிக்கு கிரிவலம் தொடங்கும் — தண்ணீர் கொண்டு செல்லுங்கள்',
-    '🍛 மலை மண்டபத்தில் இலவச அன்னதானம் — காலை 11:30 முதல் மாலை 3:00 வரை',
-    '🚗 ஆதிவாரத்தில் மூத்தோர்க்கு இலவச மின்சார வாகனம் உள்ளது',
-    '💧 படிகள் 200, 500 & 830 இல் சுத்தமான குடிநீர் கிடைக்கும்',
-    '🏥 ஆதிவார நுழைவாயலில் இலவச முதலளவு சிகிச்சை — 24 மணி நேரமும்',
-    '📿 தினமும் காலை 7:00 & மாலை 7:00 மணிக்கு கந்த சஷ்டி கவசம் பாராயணம்',
-    '🎉 பங்குனி உத்திர சிறப்பு திருவாபிஷேகம் — கார்ண்டர் 3 இல் முன்பதிவு செய்யுங்கள்',
-  ];
 
   @override
   State<AnnouncementTicker> createState() => _AnnouncementTickerState();
 }
 
-class _AnnouncementTickerState extends State<AnnouncementTicker>
-    with SingleTickerProviderStateMixin {
-  late final ScrollController _scrollController;
-  int _index = 0;
+class _AnnouncementTickerState extends State<AnnouncementTicker> {
+  late final PageController _pageController;
+  Timer? _timer;
+  int _currentPage = 0;
+  bool _isInteracting = false;
 
   @override
   void initState() {
     super.initState();
-    _scrollController = ScrollController();
-    _startCycle();
+    _pageController = PageController();
+    _startTimer();
   }
 
-  void _startCycle() async {
-    while (mounted) {
-      await Future.delayed(const Duration(seconds: 4));
-      if (!mounted) break;
-      setState(() {
-        _index = (_index + 1) % AnnouncementTicker._messagesEn.length;
-      });
+  void _startTimer() {
+    _timer?.cancel();
+    if (WidgetsBinding.instance.runtimeType.toString().contains('Test')) {
+      return;
     }
+    // 7.5 seconds slow rotation gives ample time to read complete text
+    _timer = Timer.periodic(const Duration(milliseconds: 7500), (_) {
+      if (!mounted || _isInteracting) return;
+      final provider = Provider.of<BulletinProvider?>(context, listen: false);
+      final itemsCount = provider?.items.length ?? 2;
+      if (itemsCount <= 0) return;
+      final nextPage = (_currentPage + 1) % itemsCount;
+      if (_pageController.hasClients) {
+        _pageController.animateToPage(
+          nextPage,
+          duration: const Duration(milliseconds: 650),
+          curve: Curves.easeInOutCubic,
+        );
+      }
+    });
   }
 
   @override
   void dispose() {
-    _scrollController.dispose();
+    _timer?.cancel();
+    _pageController.dispose();
     super.dispose();
+  }
+
+  void _goTo(int page) {
+    if (_pageController.hasClients) {
+      _pageController.animateToPage(
+        page,
+        duration: const Duration(milliseconds: 400),
+        curve: Curves.easeInOut,
+      );
+    }
   }
 
   @override
   Widget build(BuildContext context) {
     final isTamil = AppLocalizations.of(context).currentLocale == 'ta';
-    final messages = isTamil
-        ? AnnouncementTicker._messagesTa
-        : AnnouncementTicker._messagesEn;
+    final isDark = Theme.of(context).brightness == Brightness.dark;
+
+    final bulletinProvider = Provider.of<BulletinProvider?>(context);
+    final items = bulletinProvider?.items ?? [
+      BulletinItem(
+        id: 'core_safety_twowheeler',
+        icon: Icons.two_wheeler_rounded,
+        categoryEn: 'SAFETY ADVISORY',
+        categoryTa: 'பாதுகாப்பு எச்சரிக்கை',
+        textEn: 'Two-wheelers are not allowed for travel to the hilltop after 5:00 PM for safety purposes.',
+        textTa: 'பாதுகாப்பு காரணங்களுக்காக மாலை 5:00 மணிக்கு மேல் இருசக்கர வாகனங்கள் மலைப்பாதையில் செல்ல அனுமதி இல்லை.',
+        accentColor: const Color(0xFFEF4444),
+        isCustom: false,
+        createdAt: DateTime(2026, 1, 1),
+      ),
+      BulletinItem(
+        id: 'core_daily_recitations',
+        icon: Icons.auto_stories_rounded,
+        categoryEn: 'DAILY RECITATION',
+        categoryTa: 'தினசரி பாராயணம்',
+        textEn: 'Special recitations everyday at 6:00 PM at the temple.',
+        textTa: 'திருக்கோயிலில் தினமும் மாலை 6:00 மணிக்கு சிறப்பு கூட்டுப் பாராயணம் நடைபெறும்.',
+        accentColor: const Color(0xFFF59E0B),
+        isCustom: false,
+        createdAt: DateTime(2026, 1, 1),
+      ),
+    ];
+
+    final count = items.length;
+    if (_currentPage >= count) {
+      _currentPage = 0;
+    }
 
     return Container(
-      height: 44,
-      color: const Color(0xFF800000),
-      child: Row(
-        children: [
-          Container(
-            padding: const EdgeInsets.symmetric(horizontal: 10),
-            color: const Color(0xFFFF9933),
-            height: double.infinity,
-            child: Center(
+      margin: const EdgeInsets.symmetric(horizontal: 14, vertical: 6),
+      decoration: BoxDecoration(
+        color: isDark ? const Color(0xFF1F1111) : const Color(0xFF7A1414),
+        borderRadius: BorderRadius.circular(14),
+        border: Border.all(
+          color: const Color(0xFFD97706).withValues(alpha: 0.4),
+          width: 1.2,
+        ),
+        boxShadow: [
+          BoxShadow(
+            color: Colors.black.withValues(alpha: 0.15),
+            blurRadius: 8,
+            offset: const Offset(0, 3),
+          ),
+        ],
+      ),
+      child: GestureDetector(
+        onPanDown: (_) => setState(() => _isInteracting = true),
+        onPanCancel: () => setState(() => _isInteracting = false),
+        onPanEnd: (_) => setState(() => _isInteracting = false),
+        child: Column(
+          mainAxisSize: MainAxisSize.min,
+          children: [
+            // Top Bar: LIVE Tag + Progress Dots + Arrows
+            Padding(
+              padding: const EdgeInsets.fromLTRB(12, 8, 10, 4),
               child: Row(
-                mainAxisSize: MainAxisSize.min,
                 children: [
-                  const Icon(Icons.campaign, color: Colors.white, size: 16),
-                  const SizedBox(width: 4),
+                  // Pulsing Live Indicator Badge
+                  Container(
+                    padding: const EdgeInsets.symmetric(horizontal: 8, vertical: 3),
+                    decoration: BoxDecoration(
+                      color: const Color(0xFFD97706),
+                      borderRadius: BorderRadius.circular(6),
+                      boxShadow: [
+                        BoxShadow(
+                          color: const Color(0xFFD97706).withValues(alpha: 0.4),
+                          blurRadius: 6,
+                          offset: const Offset(0, 1),
+                        ),
+                      ],
+                    ),
+                    child: Row(
+                      mainAxisSize: MainAxisSize.min,
+                      children: [
+                        const PulsingLiveDot(
+                          color: Colors.white,
+                          size: 6,
+                        ),
+                        const SizedBox(width: 5),
+                        Text(
+                          isTamil ? 'நேரலைச் செய்தி' : 'LIVE BULLETIN',
+                          style: const TextStyle(
+                            color: Colors.white,
+                            fontSize: 10,
+                            fontWeight: FontWeight.w900,
+                            letterSpacing: 0.8,
+                          ),
+                        ),
+                      ],
+                    ),
+                  ),
+                  const Spacer(),
+
+                  // Counter indicator (e.g., 1 / 2)
                   Text(
-                    isTamil ? 'நேரலை' : 'LIVE',
-                    style: const TextStyle(
-                        color: Colors.white,
-                        fontSize: 12,
-                        fontWeight: FontWeight.w800,
-                        letterSpacing: 1)),
+                    '${_currentPage + 1} / $count',
+                    style: TextStyle(
+                      color: Colors.white.withValues(alpha: 0.6),
+                      fontSize: 11,
+                      fontWeight: FontWeight.w600,
+                    ),
+                  ),
+                  const SizedBox(width: 8),
+
+                  // Interactive Navigation Chevrons
+                  InkWell(
+                    onTap: () {
+                      final prev = (_currentPage - 1 + count) % count;
+                      _goTo(prev);
+                    },
+                    borderRadius: BorderRadius.circular(12),
+                    child: Padding(
+                      padding: const EdgeInsets.all(2),
+                      child: Icon(
+                        Icons.chevron_left_rounded,
+                        size: 20,
+                        color: Colors.white.withValues(alpha: 0.7),
+                      ),
+                    ),
+                  ),
+                  InkWell(
+                    onTap: () {
+                      final next = (_currentPage + 1) % count;
+                      _goTo(next);
+                    },
+                    borderRadius: BorderRadius.circular(12),
+                    child: Padding(
+                      padding: const EdgeInsets.all(2),
+                      child: Icon(
+                        Icons.chevron_right_rounded,
+                        size: 20,
+                        color: Colors.white.withValues(alpha: 0.7),
+                      ),
+                    ),
+                  ),
                 ],
               ),
             ),
-          ),
-          Expanded(
-            child: AnimatedSwitcher(
-              duration: const Duration(milliseconds: 500),
-              transitionBuilder: (child, anim) => SlideTransition(
-                position: Tween<Offset>(
-                  begin: const Offset(0, 1),
-                  end: Offset.zero,
-                ).animate(anim),
-                child: child,
-              ),
-              child: Padding(
-                key: ValueKey('$isTamil-$_index'),
-                padding: const EdgeInsets.symmetric(horizontal: 12),
-                child: Text(
-                  messages[_index % messages.length],
-                  style: const TextStyle(
-                      color: Colors.white,
-                      fontSize: 13,
-                      fontWeight: FontWeight.w500),
-                  maxLines: 1,
-                  overflow: TextOverflow.ellipsis,
-                ),
+
+            // Carousel Slide Body
+            SizedBox(
+              height: isTamil ? 86 : 76,
+              child: PageView.builder(
+                controller: _pageController,
+                itemCount: count,
+                onPageChanged: (idx) {
+                  setState(() => _currentPage = idx);
+                },
+                itemBuilder: (context, index) {
+                  final item = items[index];
+                  final text = isTamil ? item.textTa : item.textEn;
+                  final category = isTamil ? item.categoryTa : item.categoryEn;
+
+                  return Padding(
+                    padding: const EdgeInsets.fromLTRB(12, 2, 12, 6),
+                    child: Row(
+                      crossAxisAlignment: CrossAxisAlignment.center,
+                      children: [
+                        // Category Icon Avatar
+                        Container(
+                          width: 38,
+                          height: 38,
+                          decoration: BoxDecoration(
+                            color: item.accentColor.withValues(alpha: 0.2),
+                            borderRadius: BorderRadius.circular(10),
+                            border: Border.all(
+                              color: item.accentColor.withValues(alpha: 0.5),
+                              width: 1,
+                            ),
+                          ),
+                          child: Icon(item.icon, color: item.accentColor, size: 20),
+                        ),
+                        const SizedBox(width: 10),
+
+                        // Message Text with category pill
+                        Expanded(
+                          child: Column(
+                            crossAxisAlignment: CrossAxisAlignment.start,
+                            mainAxisAlignment: MainAxisAlignment.center,
+                            mainAxisSize: MainAxisSize.min,
+                            children: [
+                              Row(
+                                children: [
+                                  Text(
+                                    category,
+                                    style: TextStyle(
+                                      color: item.accentColor,
+                                      fontSize: 10,
+                                      fontWeight: FontWeight.w800,
+                                      letterSpacing: 0.6,
+                                    ),
+                                  ),
+                                  if (item.isCustom) ...[
+                                    const SizedBox(width: 6),
+                                    Container(
+                                      padding: const EdgeInsets.symmetric(horizontal: 5, vertical: 1),
+                                      decoration: BoxDecoration(
+                                        color: Colors.white.withValues(alpha: 0.15),
+                                        borderRadius: BorderRadius.circular(4),
+                                      ),
+                                      child: Text(
+                                        isTamil ? 'நிர்வாகம்' : 'ADMIN',
+                                        style: const TextStyle(
+                                          color: Colors.white70,
+                                          fontSize: 8.5,
+                                          fontWeight: FontWeight.w700,
+                                        ),
+                                      ),
+                                    ),
+                                  ],
+                                ],
+                              ),
+                              const SizedBox(height: 2),
+                              Text(
+                                text,
+                                style: TextStyle(
+                                  color: Colors.white,
+                                  fontSize: isTamil ? 11.8 : 12.5,
+                                  fontWeight: FontWeight.w600,
+                                  height: 1.28,
+                                ),
+                                maxLines: 3,
+                                overflow: TextOverflow.ellipsis,
+                              ),
+                            ],
+                          ),
+                        ),
+                      ],
+                    ),
+                  );
+                },
               ),
             ),
-          ),
-        ],
+
+            // Subtle Dots Indicator
+            Padding(
+              padding: const EdgeInsets.only(bottom: 6),
+              child: Row(
+                mainAxisAlignment: MainAxisAlignment.center,
+                children: List.generate(count, (idx) {
+                  final isSelected = idx == _currentPage;
+                  return AnimatedContainer(
+                    duration: const Duration(milliseconds: 250),
+                    margin: const EdgeInsets.symmetric(horizontal: 2.5),
+                    width: isSelected ? 16 : 5,
+                    height: 4,
+                    decoration: BoxDecoration(
+                      color: isSelected
+                          ? const Color(0xFFD97706)
+                          : Colors.white.withValues(alpha: 0.25),
+                      borderRadius: BorderRadius.circular(3),
+                    ),
+                  );
+                }),
+              ),
+            ),
+          ],
+        ),
       ),
     );
   }

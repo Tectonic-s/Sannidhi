@@ -5,8 +5,11 @@ import 'package:qr_flutter/qr_flutter.dart';
 import '../../../core/constants/app_theme.dart';
 import '../../../core/l10n/app_localizations.dart';
 import '../../../core/widgets/custom_app_bar.dart';
+import '../../../core/widgets/auth_required_dialog.dart';
+import '../../../core/widgets/micro_animations.dart';
 import '../../../core/services/cashfree_payment_service.dart';
 import '../../../data/models/activity_models.dart';
+import '../../../providers/auth_provider.dart';
 import '../../../providers/user_activity_provider.dart';
 import '../../../services/tax_receipt_service.dart';
 import '../payment/cashfree_payment_screen.dart';
@@ -42,11 +45,20 @@ class _DonationScreenState extends State<DonationScreen> {
   @override
   Widget build(BuildContext context) {
     final l10n = AppLocalizations.of(context);
+    final auth = context.watch<AuthProvider>();
+    final isAuth = auth.isAuthenticated;
+
     return Scaffold(
       appBar: CustomAppBar(onToggleLocale: widget.onToggleLocale),
       body: ListView(
         padding: const EdgeInsets.all(16),
         children: [
+          if (!isAuth) ...[
+            AuthLockBanner(
+              featureName: l10n.translate('donation') ?? 'Donation & Offerings',
+            ),
+            const SizedBox(height: 16),
+          ],
           _label(l10n.translate('selectCause') ?? 'Select Cause'),
           const SizedBox(height: 12),
           _CauseChips(
@@ -92,11 +104,32 @@ class _DonationScreenState extends State<DonationScreen> {
           const SizedBox(height: 24),
           SizedBox(
             height: 56,
-            child: ElevatedButton.icon(
-              icon: const Icon(Icons.favorite),
-              label: Text(
-                  '${l10n.translate('proceedToPay') ?? 'Proceed to Pay'}  ₹$_amount'),
-              onPressed: _proceedToPay,
+            child: BouncingScaleTap(
+              onTap: isAuth
+                  ? _proceedToPay
+                  : () => showAuthRequiredDialog(
+                        context: context,
+                        featureName: l10n.translate('donation') ?? 'Donation & Offerings',
+                      ),
+              child: ElevatedButton.icon(
+                icon: Icon(isAuth ? Icons.favorite : Icons.lock),
+                label: Text(
+                  isAuth
+                      ? '${l10n.translate('proceedToPay') ?? 'Proceed to Pay'}  ₹$_amount'
+                      : 'Sign In to Access (${l10n.translate('donation') ?? 'Donation'})',
+                ),
+                style: ElevatedButton.styleFrom(
+                  backgroundColor: isAuth ? AppTheme.primaryColor : Colors.grey.shade400,
+                  elevation: isAuth ? 2 : 0,
+                  shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(14)),
+                ),
+                onPressed: isAuth
+                    ? _proceedToPay
+                    : () => showAuthRequiredDialog(
+                          context: context,
+                          featureName: l10n.translate('donation') ?? 'Donation & Offerings',
+                        ),
+              ),
             ),
           ),
         ],
@@ -105,10 +138,19 @@ class _DonationScreenState extends State<DonationScreen> {
   }
 
   Widget _label(String t) => Text(t,
-      style: const TextStyle(
-          fontSize: 16, fontWeight: FontWeight.w700, color: AppTheme.textPrimary));
+      style: TextStyle(
+          fontSize: 16, fontWeight: FontWeight.w700, color: AppTheme.textPrimaryOf(context)));
 
   void _proceedToPay() {
+    final auth = context.read<AuthProvider>();
+    if (!auth.isAuthenticated) {
+      showAuthRequiredDialog(
+        context: context,
+        featureName: AppLocalizations.of(context).translate('donation') ?? 'Donation & Offerings',
+      );
+      return;
+    }
+
     final parsed = int.tryParse(_controller.text.trim());
     if (parsed == null || parsed <= 0) {
       ScaffoldMessenger.of(context).showSnackBar(
@@ -118,15 +160,18 @@ class _DonationScreenState extends State<DonationScreen> {
     final cause = _causes.firstWhere((c) => c.key == _selectedCauseKey);
     final l10n = AppLocalizations.of(context);
     final causeLabel = l10n.translate(_selectedCauseKey) ?? _selectedCauseKey;
+    final user = auth.currentUser;
 
     CashfreePaymentService.instance.startPayment(
       context: context,
       amount: parsed.toDouble(),
       description: causeLabel,
-      customerId: 'devotee_${DateTime.now().millisecondsSinceEpoch}',
-      customerName: 'Devotee',
-      customerEmail: 'devotee@sannidhi.app',
-      customerPhone: '9999999999',
+      customerId: user != null && user.id.isNotEmpty
+          ? user.id
+          : 'devotee_${DateTime.now().millisecondsSinceEpoch}',
+      customerName: user != null && user.name.isNotEmpty ? user.name : 'Devotee',
+      customerEmail: user != null && user.email.isNotEmpty ? user.email : 'devotee@sannidhi.app',
+      customerPhone: user != null && user.phone.isNotEmpty ? user.phone : '9999999999',
     ).then((result) {
       if (!mounted) return;
       if (result.result == CashfreePaymentResult.success) {
@@ -143,7 +188,11 @@ class _DonationScreenState extends State<DonationScreen> {
           qrPayload: qr,
           ref80g: '80G/MRD/$txnId',
         );
-        context.read<UserActivityProvider>().addDonation(receipt);
+        context.read<UserActivityProvider>().addDonation(
+          receipt,
+          token: auth.token,
+          userId: user?.id,
+        );
 
         showModalBottomSheet(
           context: context,
@@ -194,15 +243,15 @@ class _CauseChips extends StatelessWidget {
       runSpacing: 10,
       children: causes.map((c) {
         final isSel = c.key == selected;
-        return GestureDetector(
+        return BouncingScaleTap(
           onTap: () => onSelect(c.key),
           child: AnimatedContainer(
             duration: const Duration(milliseconds: 150),
             padding: const EdgeInsets.symmetric(horizontal: 14, vertical: 10),
             decoration: BoxDecoration(
-              color: isSel ? c.color : Colors.white,
+              color: isSel ? c.color : Theme.of(context).cardColor,
               border: Border.all(
-                  color: isSel ? c.color : Colors.grey.shade300, width: 1.5),
+                  color: isSel ? c.color : AppTheme.borderColor(context), width: 1.5),
               borderRadius: BorderRadius.circular(12),
               boxShadow: isSel
                   ? [BoxShadow(color: c.color.withValues(alpha: 0.3), blurRadius: 6)]
@@ -217,7 +266,7 @@ class _CauseChips extends StatelessWidget {
                     style: TextStyle(
                         fontSize: 13,
                         fontWeight: FontWeight.w600,
-                        color: isSel ? Colors.white : AppTheme.textPrimary)),
+                        color: isSel ? Colors.white : AppTheme.textPrimaryOf(context))),
               ],
             ),
           ),
@@ -245,17 +294,17 @@ class _QuickAmountPills extends StatelessWidget {
         return Expanded(
           child: Padding(
             padding: const EdgeInsets.symmetric(horizontal: 4),
-            child: GestureDetector(
+            child: BouncingScaleTap(
               onTap: () => onSelect(amt),
               child: AnimatedContainer(
                 duration: const Duration(milliseconds: 150),
                 height: 44,
                 decoration: BoxDecoration(
-                  color: isSel ? AppTheme.primaryColor : Colors.white,
+                  color: isSel ? AppTheme.primaryColor : Theme.of(context).cardColor,
                   border: Border.all(
                       color: isSel
                           ? AppTheme.primaryColor
-                          : Colors.grey.shade300),
+                          : AppTheme.borderColor(context)),
                   borderRadius: BorderRadius.circular(10),
                 ),
                 child: Center(
@@ -263,7 +312,7 @@ class _QuickAmountPills extends StatelessWidget {
                       style: TextStyle(
                           fontSize: 13,
                           fontWeight: FontWeight.w700,
-                          color: isSel ? Colors.white : AppTheme.textPrimary)),
+                          color: isSel ? Colors.white : AppTheme.textPrimaryOf(context))),
                 ),
               ),
             ),
@@ -289,10 +338,13 @@ class _ReceiptSheet extends StatelessWidget {
   @override
   Widget build(BuildContext context) {
     final l10n = AppLocalizations.of(context);
+    final isDark = AppTheme.isDark(context);
     return Container(
       margin: const EdgeInsets.fromLTRB(16, 0, 16, 32),
       decoration: BoxDecoration(
-          color: Colors.white, borderRadius: BorderRadius.circular(24)),
+          color: Theme.of(context).cardColor,
+          borderRadius: BorderRadius.circular(24),
+          border: Border.all(color: AppTheme.borderColor(context))),
       child: SingleChildScrollView(
         child: Column(
           mainAxisSize: MainAxisSize.min,
@@ -302,7 +354,7 @@ class _ReceiptSheet extends StatelessWidget {
               width: 40,
               height: 4,
               decoration: BoxDecoration(
-                  color: Colors.grey.shade300,
+                  color: isDark ? Colors.white24 : Colors.grey.shade300,
                   borderRadius: BorderRadius.circular(2)),
             ),
             Container(
@@ -328,27 +380,40 @@ class _ReceiptSheet extends StatelessWidget {
             ),
             Padding(
               padding: const EdgeInsets.symmetric(vertical: 16),
-              child: QrImageView(
-                data: receipt.qrPayload,
-                version: QrVersions.auto,
-                size: 150,
-                eyeStyle: QrEyeStyle(
-                    eyeShape: QrEyeShape.square, color: causeColor),
-                dataModuleStyle: const QrDataModuleStyle(
-                    dataModuleShape: QrDataModuleShape.square,
-                    color: Color(0xFF333333)),
+              child: Container(
+                padding: const EdgeInsets.all(12),
+                decoration: BoxDecoration(
+                  color: Colors.white,
+                  borderRadius: BorderRadius.circular(16),
+                  boxShadow: [
+                    BoxShadow(
+                      color: Colors.black.withValues(alpha: 0.08),
+                      blurRadius: 8,
+                    ),
+                  ],
+                ),
+                child: QrImageView(
+                  data: receipt.qrPayload,
+                  version: QrVersions.auto,
+                  size: 150,
+                  eyeStyle: QrEyeStyle(
+                      eyeShape: QrEyeShape.square, color: causeColor),
+                  dataModuleStyle: const QrDataModuleStyle(
+                      dataModuleShape: QrDataModuleShape.square,
+                      color: Color(0xFF000000)),
+                ),
               ),
             ),
             Padding(
               padding: const EdgeInsets.symmetric(horizontal: 24),
               child: Column(children: [
-                _r(l10n.translate('transactionId') ?? 'Transaction ID',
+                _r(context, l10n.translate('transactionId') ?? 'Transaction ID',
                     receipt.transactionId, bold: true),
-                _r('80G Reference', receipt.ref80g),
-                _r(l10n.translate('cause') ?? 'Cause', receipt.cause),
-                _r(l10n.translate('amount') ?? 'Amount',
+                _r(context, '80G Reference', receipt.ref80g),
+                _r(context, l10n.translate('cause') ?? 'Cause', receipt.cause),
+                _r(context, l10n.translate('amount') ?? 'Amount',
                     '₹${receipt.amount}', bold: true),
-                _r(l10n.translate('date') ?? 'Date', receipt.dateStr),
+                _r(context, l10n.translate('date') ?? 'Date', receipt.dateStr),
               ]),
             ),
             const SizedBox(height: 8),
@@ -391,19 +456,19 @@ class _ReceiptSheet extends StatelessWidget {
     );
   }
 
-  Widget _r(String label, String value, {bool bold = false}) => Padding(
+  Widget _r(BuildContext context, String label, String value, {bool bold = false}) => Padding(
         padding: const EdgeInsets.symmetric(vertical: 5),
         child: Row(
           mainAxisAlignment: MainAxisAlignment.spaceBetween,
           children: [
             Text(label,
-                style: const TextStyle(
-                    fontSize: 13, color: AppTheme.textSecondary)),
+                style: TextStyle(
+                    fontSize: 13, color: AppTheme.textSecondaryOf(context))),
             Text(value,
                 style: TextStyle(
                     fontSize: 13,
                     fontWeight: bold ? FontWeight.w700 : FontWeight.w500,
-                    color: AppTheme.textPrimary)),
+                    color: AppTheme.textPrimaryOf(context))),
           ],
         ),
       );

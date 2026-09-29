@@ -1,13 +1,16 @@
 import 'dart:async';
 import 'dart:io';
 import 'dart:math';
+import 'package:flutter/foundation.dart';
 import 'package:flutter_local_notifications/flutter_local_notifications.dart';
 import 'package:geolocator/geolocator.dart';
+
+import 'firebase_service.dart';
 
 // ── Exact Temple coordinates  ──────────────────────
 const double _templeLat = 11.04611;
 const double _templeLng = 76.85194;
-const double _radiusMetres = 300.0;
+const double _radiusMetres = 500.0;
 
 enum GeofenceEvent { enter, exit }
 
@@ -25,44 +28,69 @@ class GeofenceService {
 
   bool get isInsideTemple => _insideGeofence;
 
+  /// Allows manual simulation of geofence hardware trigger for testing
+  Future<void> simulateHardwareTrigger(bool isEntering) async {
+    _insideGeofence = isEntering;
+    onGeofenceEvent?.call(isEntering ? GeofenceEvent.enter : GeofenceEvent.exit);
+    await FirebaseService.instance.recordHardwareFootfall(
+      isEntering: isEntering,
+      latitude: _templeLat,
+      longitude: _templeLng,
+    );
+  }
+
   // ── Init ───────────────────────────────────────────────────────────────────
 
   Future<void> init() async {
     if (_initialised) return;
     _initialised = true;
-    await _initNotifications();
+    try {
+      await _initNotifications();
+    } catch (e) {
+      debugPrint('[GeofenceService] Notification init skipped: $e');
+    }
   }
 
   // ── Start / Stop ───────────────────────────────────────────────────────────
 
   /// Returns false if permission was denied.
   Future<bool> startMonitoring() async {
-    final granted = await _requestPermission();
-    if (!granted) return false;
+    try {
+      final granted = await _requestPermission();
+      if (!granted) return false;
 
-    // Medium accuracy + 15 m filter = very low battery drain.
-    final LocationSettings settings = Platform.isAndroid
-        ? AndroidSettings(
-            accuracy: LocationAccuracy.medium,
-            distanceFilter: 15,
-            foregroundNotificationConfig: const ForegroundNotificationConfig(
-              notificationTitle: 'Sannidhi',
-              notificationText: 'Monitoring temple proximity',
-              enableWakeLock: false,
-            ),
-          )
-        : AppleSettings(
-            accuracy: LocationAccuracy.medium,
-            distanceFilter: 15,
-            activityType: ActivityType.other,
-            pauseLocationUpdatesAutomatically: true,
-          );
+      // Medium accuracy + 15 m filter = very low battery drain.
+      final LocationSettings settings = Platform.isAndroid
+          ? AndroidSettings(
+              accuracy: LocationAccuracy.medium,
+              distanceFilter: 15,
+              foregroundNotificationConfig: const ForegroundNotificationConfig(
+                notificationTitle: 'Sannidhi',
+                notificationText: 'Monitoring temple proximity',
+                enableWakeLock: false,
+              ),
+            )
+          : AppleSettings(
+              accuracy: LocationAccuracy.medium,
+              distanceFilter: 15,
+              activityType: ActivityType.other,
+              pauseLocationUpdatesAutomatically: true,
+            );
 
-    _positionSub = Geolocator.getPositionStream(
-      locationSettings: settings,
-    ).listen(_onPosition);
+      _positionSub = Geolocator.getPositionStream(
+        locationSettings: settings,
+      ).listen(
+        _onPosition,
+        onError: (err) {
+          debugPrint('[GeofenceService] Position stream error: $err');
+        },
+      );
 
-    return true;
+      return true;
+    } catch (e) {
+      debugPrint('[GeofenceService] Location monitoring skipped: $e');
+      return false;
+    }
   }
 
   void stopMonitoring() {
@@ -79,6 +107,11 @@ class GeofenceService {
     if (inside && !_insideGeofence) {
       _insideGeofence = true;
       onGeofenceEvent?.call(GeofenceEvent.enter);
+      FirebaseService.instance.recordHardwareFootfall(
+        isEntering: true,
+        latitude: pos.latitude,
+        longitude: pos.longitude,
+      );
       _notify(
         'Welcome to Sannidhi Temple 🙏',
         'You have entered the temple premises. Have a blessed darshan.',
@@ -86,6 +119,11 @@ class GeofenceService {
     } else if (!inside && _insideGeofence) {
       _insideGeofence = false;
       onGeofenceEvent?.call(GeofenceEvent.exit);
+      FirebaseService.instance.recordHardwareFootfall(
+        isEntering: false,
+        latitude: pos.latitude,
+        longitude: pos.longitude,
+      );
       _notify(
         'Goodbye 🙏',
         'You have left the temple premises. Thank you for visiting.',

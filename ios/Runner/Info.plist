@@ -11,6 +11,11 @@
 	<string>Sannidhi needs background location access to track temple footfall even when the app is closed, so you don't need to use your phone inside the temple.</string>
 	<key>NSLocationAlwaysUsageDescription</key>
 	<string>Sannidhi needs background location access to track temple footfall even when the app is closed.</string>
+	<!-- Camera & Photo Library permissions -->
+	<key>NSCameraUsageDescription</key>
+	<string>Sannidhi needs camera access to let you capture a profile photo and scan tickets.</string>
+	<key>NSPhotoLibraryUsageDescription</key>
+	<string>Sannidhi needs photo library access to let you choose your profile photo.</string>
 	<!-- Background modes -->
 	<key>UIBackgroundModes</key>
 	<array>

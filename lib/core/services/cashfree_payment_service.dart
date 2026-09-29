@@ -10,16 +10,11 @@ import 'package:flutter_cashfree_pg_sdk/utils/cfenums.dart';
 import 'package:flutter_cashfree_pg_sdk/utils/cfexceptions.dart';
 import 'package:http/http.dart' as http;
 import '../models/cashfree_order.dart';
+import '../../providers/auth_provider.dart';
 
-/// Backend URL can be overridden at build time with:
-/// --dart-define=BACKEND_BASE_URL=https://your-public-backend.example.com
-/// Android emulator  → http://10.0.2.2:3000
-/// Real device       → http://192.168.1.12:3000
-/// iOS simulator     → http://127.0.0.1:3000
-const String _backendBaseUrl = String.fromEnvironment(
-  'BACKEND_BASE_URL',
-  defaultValue: 'http://192.168.1.12:3000',
-);
+/// Backend URL is resolved dynamically and can be overridden at build time with:
+/// flutter build apk --dart-define=BACKEND_BASE_URL=https://your-backend-url.com
+String get _backendBaseUrl => AuthProvider.backendUrl;
 
 enum CashfreePaymentResult { success, failure, cancelled }
 
@@ -108,7 +103,7 @@ class CashfreePaymentService {
   Future<void> _wakeBackend() async {
     final response = await http
         .get(Uri.parse('$_backendBaseUrl/health'))
-        .timeout(const Duration(seconds: 45));
+        .timeout(const Duration(seconds: 6));
 
     if (response.statusCode != 200) {
       throw Exception('Backend is unavailable (${response.statusCode})');

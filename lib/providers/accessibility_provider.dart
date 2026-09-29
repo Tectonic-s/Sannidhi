@@ -1,13 +1,51 @@
 import 'package:flutter/material.dart';
+import 'package:shared_preferences/shared_preferences.dart';
 
 class AccessibilityProvider extends ChangeNotifier {
   bool _isElderlyMode = false;
+  ThemeMode _themeMode = ThemeMode.system;
 
   bool get isElderlyMode => _isElderlyMode;
+  ThemeMode get themeMode => _themeMode;
+  ThemeMode get currentThemeMode => _themeMode;
+
+  AccessibilityProvider() {
+    _loadPreferences();
+  }
+
+  Future<void> _loadPreferences() async {
+    final prefs = await SharedPreferences.getInstance();
+    _isElderlyMode = prefs.getBool('preferred_elderly_mode') ?? false;
+    final savedMode = prefs.getString('theme_mode');
+    if (savedMode == 'light') {
+      _themeMode = ThemeMode.light;
+    } else if (savedMode == 'dark') {
+      _themeMode = ThemeMode.dark;
+    } else {
+      _themeMode = ThemeMode.system;
+    }
+    notifyListeners();
+  }
 
   void toggle() {
     _isElderlyMode = !_isElderlyMode;
+    SharedPreferences.getInstance().then((p) {
+      p.setBool('preferred_elderly_mode', _isElderlyMode);
+    });
     notifyListeners();
+  }
+
+  Future<void> setThemeMode(ThemeMode mode) async {
+    _themeMode = mode;
+    notifyListeners();
+    final prefs = await SharedPreferences.getInstance();
+    if (mode == ThemeMode.light) {
+      await prefs.setString('theme_mode', 'light');
+    } else if (mode == ThemeMode.dark) {
+      await prefs.setString('theme_mode', 'dark');
+    } else {
+      await prefs.setString('theme_mode', 'system');
+    }
   }
 
   // ── Colour overrides ───────────────────────────────────────────────────────

@@ -1,9 +1,16 @@
 import 'package:flutter/material.dart';
+import 'package:provider/provider.dart';
 
 import '../../../core/constants/app_theme.dart';
 import '../../../core/l10n/app_localizations.dart';
 import '../../../core/widgets/custom_app_bar.dart';
+import '../../../core/widgets/micro_animations.dart';
+import '../../../core/widgets/ticket_carousel_modal.dart';
 import '../../../core/services/cashfree_payment_service.dart';
+import '../../../data/models/activity_models.dart';
+import '../../../providers/auth_provider.dart';
+import '../../../providers/user_activity_provider.dart';
+import '../facility/facility_locator_screen.dart';
 import '../payment/cashfree_payment_screen.dart';
 
 class _ServiceItem {
@@ -106,23 +113,115 @@ class ServicesScreen extends StatelessWidget {
 
     return Scaffold(
       appBar: CustomAppBar(onToggleLocale: onToggleLocale),
-      body: ListView.separated(
-        padding: const EdgeInsets.all(16),
-        itemCount: _services.length,
-        separatorBuilder: (ctx, i) => const SizedBox(height: 12),
-        itemBuilder: (context, i) {
-          final s = _services[i];
-          final title = isTamil
-              ? s.tamilTitle
-              : (l10n.translate(s.titleKey) ?? s.titleKey);
-          final desc = l10n.translate(s.descKey) ?? s.descKey;
-          return _ServiceCard(
-            service: s,
-            title: title,
-            desc: desc,
-            onTap: () => _showDetail(context, s, title, l10n),
-          );
-        },
+      body: ListView(
+        padding: const EdgeInsets.only(left: 16, right: 16, top: 16, bottom: 110),
+        children: [
+          // Facility Locator Quick Tile
+          Container(
+            padding: const EdgeInsets.all(14),
+            decoration: BoxDecoration(
+              gradient: const LinearGradient(
+                colors: [Color(0xFF0288D1), Color(0xFF01579B)],
+                begin: Alignment.topLeft,
+                end: Alignment.bottomRight,
+              ),
+              borderRadius: BorderRadius.circular(16),
+              boxShadow: const [
+                BoxShadow(color: Color(0x220288D1), blurRadius: 8, offset: Offset(0, 3)),
+              ],
+            ),
+            child: Row(
+              children: [
+                Container(
+                  padding: const EdgeInsets.all(10),
+                  decoration: BoxDecoration(
+                    color: Colors.white.withValues(alpha: 0.2),
+                    borderRadius: BorderRadius.circular(12),
+                  ),
+                  child: const Icon(Icons.explore, color: Colors.white, size: 28),
+                ),
+                const SizedBox(width: 14),
+                Expanded(
+                  child: Column(
+                    crossAxisAlignment: CrossAxisAlignment.start,
+                    children: [
+                      Text(
+                        isTamil ? 'கோயில் வசதிகள் வழிகாட்டி' : 'Temple Facilities Locator',
+                        style: const TextStyle(
+                          color: Colors.white,
+                          fontSize: 15,
+                          fontWeight: FontWeight.w700,
+                        ),
+                      ),
+                      const SizedBox(height: 2),
+                      Text(
+                        isTamil
+                            ? 'குடிநீர், அன்னதானம், அவசர உதவி & கழிப்பறை'
+                            : 'RO water points, medical post, dining hall & shoe stands',
+                        style: const TextStyle(color: Colors.white70, fontSize: 12),
+                      ),
+                    ],
+                  ),
+                ),
+                BouncingScaleTap(
+                  onTap: () => Navigator.push(
+                    context,
+                    MaterialPageRoute(
+                      builder: (_) => FacilityLocatorScreen(onToggleLocale: onToggleLocale),
+                    ),
+                  ),
+                  child: ElevatedButton(
+                    onPressed: () => Navigator.push(
+                      context,
+                      MaterialPageRoute(
+                        builder: (_) => FacilityLocatorScreen(onToggleLocale: onToggleLocale),
+                      ),
+                    ),
+                    style: ElevatedButton.styleFrom(
+                      backgroundColor: Colors.white,
+                      foregroundColor: const Color(0xFF01579B),
+                      padding: const EdgeInsets.symmetric(horizontal: 12, vertical: 8),
+                      textStyle: const TextStyle(fontSize: 12, fontWeight: FontWeight.w700),
+                    ),
+                    child: Text(isTamil ? 'காண்க' : 'Locate'),
+                  ),
+                ),
+              ],
+            ),
+          ),
+          const SizedBox(height: 16),
+
+          Text(
+            isTamil ? 'கோயில் சேவைகள் & வழிபாடுகள்' : 'Temple Devasthanam Services',
+            style: TextStyle(
+              fontSize: 16,
+              fontWeight: FontWeight.w800,
+              color: AppTheme.textPrimaryOf(context),
+            ),
+          ),
+          const SizedBox(height: 12),
+
+          ..._services.asMap().entries.map((entry) {
+            final idx = entry.key;
+            final s = entry.value;
+            final title = isTamil
+                ? s.tamilTitle
+                : (l10n.translate(s.titleKey) ?? s.titleKey);
+            final desc = l10n.translate(s.descKey) ?? s.descKey;
+            return FadeSlideIn(
+              delay: Duration(milliseconds: 35 * idx.clamp(0, 10)),
+              child: Padding(
+                padding: const EdgeInsets.only(bottom: 12),
+                child: _ServiceCard(
+                  service: s,
+                  title: title,
+                  desc: desc,
+                  onTap: () => _showDetail(context, s, title, l10n),
+                ),
+              ),
+            );
+          }),
+        ],
       ),
     );
   }
@@ -153,13 +252,15 @@ class _ServiceCard extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
-    return GestureDetector(
+    final isTamil = AppLocalizations.of(context).currentLocale == 'ta';
+    return BouncingScaleTap(
       onTap: onTap,
       child: Container(
         padding: const EdgeInsets.all(16),
         decoration: BoxDecoration(
-          color: Colors.white,
+          color: Theme.of(context).cardColor,
           borderRadius: BorderRadius.circular(14),
+          border: Border.all(color: AppTheme.borderColor(context)),
           boxShadow: const [
             BoxShadow(
                 color: Color(0x0F000000), blurRadius: 8, offset: Offset(0, 2))
@@ -182,15 +283,17 @@ class _ServiceCard extends StatelessWidget {
                 crossAxisAlignment: CrossAxisAlignment.start,
                 children: [
                   Text(title,
-                      style: const TextStyle(
-                          fontSize: 15,
-                          fontWeight: FontWeight.w700,
-                          color: AppTheme.textPrimary)),
+                      style: TextStyle(
+                          fontSize: isTamil ? 16.5 : 15,
+                          fontWeight: FontWeight.w800,
+                          color: AppTheme.textPrimaryOf(context))),
                   const SizedBox(height: 3),
                   Text(desc,
-                      style: const TextStyle(
-                          fontSize: 12, color: AppTheme.textSecondary),
-                      maxLines: 2,
+                      style: TextStyle(
+                          fontSize: isTamil ? 13.5 : 12,
+                          color: AppTheme.textSecondaryOf(context),
+                          height: 1.3),
+                      maxLines: 3,
                       overflow: TextOverflow.ellipsis),
                 ],
               ),
@@ -199,16 +302,18 @@ class _ServiceCard extends StatelessWidget {
             Column(
               children: [
                 Text(
-                  service.fee == 0 ? 'Free' : '₹${service.fee.toInt()}',
+                  service.fee == 0
+                      ? (isTamil ? 'இலவசம்' : 'Free')
+                      : '₹${service.fee.toInt()}',
                   style: TextStyle(
-                      fontSize: 13,
-                      fontWeight: FontWeight.w700,
+                      fontSize: isTamil ? 13.5 : 13,
+                      fontWeight: FontWeight.w800,
                       color: service.fee == 0
                           ? AppColors.success
                           : service.color),
                 ),
-                const Icon(Icons.chevron_right,
-                    color: AppTheme.textSecondary, size: 20),
+                Icon(Icons.chevron_right,
+                    color: AppTheme.textSecondaryOf(context), size: 20),
               ],
             ),
           ],
@@ -228,14 +333,16 @@ class _ServiceDetailSheet extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
+    final isDark = AppTheme.isDark(context);
     return DraggableScrollableSheet(
       initialChildSize: 0.6,
       minChildSize: 0.4,
       maxChildSize: 0.9,
       builder: (_, sc) => Container(
-        decoration: const BoxDecoration(
-          color: Colors.white,
-          borderRadius: BorderRadius.vertical(top: Radius.circular(24)),
+        decoration: BoxDecoration(
+          color: Theme.of(context).cardColor,
+          borderRadius: const BorderRadius.vertical(top: Radius.circular(24)),
+          border: Border(top: BorderSide(color: AppTheme.borderColor(context))),
         ),
         child: ListView(
           controller: sc,
@@ -246,7 +353,7 @@ class _ServiceDetailSheet extends StatelessWidget {
                 width: 40,
                 height: 4,
                 decoration: BoxDecoration(
-                    color: Colors.grey.shade300,
+                    color: isDark ? Colors.white24 : Colors.grey.shade300,
                     borderRadius: BorderRadius.circular(2)),
               ),
             ),
@@ -264,17 +371,17 @@ class _ServiceDetailSheet extends StatelessWidget {
               const SizedBox(width: 14),
               Expanded(
                 child: Text(title,
-                    style: const TextStyle(
+                    style: TextStyle(
                         fontSize: 18,
                         fontWeight: FontWeight.w800,
-                        color: AppTheme.textPrimary)),
+                        color: AppTheme.textPrimaryOf(context))),
               ),
             ]),
             const SizedBox(height: 20),
-            _detailRow(Icons.access_time, 'Timings', service.timing),
-            _detailRow(Icons.location_on, 'Location', service.location),
-            _detailRow(Icons.card_giftcard, 'Prasadam', service.prasadam),
-            _detailRow(Icons.checklist, 'What to bring', service.items),
+            _detailRow(context, Icons.access_time, 'Timings', service.timing),
+            _detailRow(context, Icons.location_on, 'Location', service.location),
+            _detailRow(context, Icons.card_giftcard, 'Prasadam', service.prasadam),
+            _detailRow(context, Icons.checklist, 'What to bring', service.items),
             const SizedBox(height: 24),
             SizedBox(
               height: 56,
@@ -286,26 +393,73 @@ class _ServiceDetailSheet extends StatelessWidget {
                 style: ElevatedButton.styleFrom(
                     backgroundColor: service.color),
                 onPressed: () {
+                  final auth = context.read<AuthProvider>();
+                  final user = auth.currentUser;
+                  final provider = context.read<UserActivityProvider>();
+                  final now = DateTime.now();
+                  final date = '${now.year}-${now.month.toString().padLeft(2, '0')}-${now.day.toString().padLeft(2, '0')}';
+                  final slot = service.timing.split('&').first.trim();
+
+                  void generateAndShowPass() {
+                    final bookingId = UserActivityProvider.generateBookingId('SRV');
+                    final tickets = UserActivityProvider.generateTickets(
+                      bookingId: bookingId,
+                      count: 1,
+                      type: 'SRV',
+                      slot: slot,
+                      date: date,
+                    );
+                    final booking = DarshanBooking(
+                      bookingId: bookingId,
+                      darshanType: title,
+                      slotTime: slot,
+                      totalAmount: service.fee,
+                      ticketCount: 1,
+                      tickets: tickets,
+                      timestamp: now,
+                      date: date,
+                    );
+                    provider.addDarshanBooking(
+                      booking,
+                      token: auth.token,
+                      userId: user?.id,
+                    );
+                    showTicketCarousel(
+                      context: context,
+                      tickets: tickets,
+                      type: TicketCarouselType.darshan,
+                      slotTime: slot,
+                      date: date,
+                      bookingId: bookingId,
+                      darshanType: title,
+                    );
+                  }
+
                   if (service.fee == 0) {
                     Navigator.pop(context);
+                    generateAndShowPass();
                     ScaffoldMessenger.of(context).showSnackBar(SnackBar(
                       content: Text('$title registered successfully 🙏'),
                       backgroundColor: AppColors.success,
                     ));
                     return;
                   }
+
                   Navigator.pop(context);
                   CashfreePaymentService.instance.startPayment(
                     context: context,
                     amount: service.fee,
                     description: title,
-                    customerId: 'devotee_${DateTime.now().millisecondsSinceEpoch}',
-                    customerName: 'Devotee',
-                    customerEmail: 'devotee@sannidhi.app',
-                    customerPhone: '9999999999',
+                    customerId: user != null && user.id.isNotEmpty
+                        ? user.id
+                        : 'devotee_${DateTime.now().millisecondsSinceEpoch}',
+                    customerName: user != null && user.name.isNotEmpty ? user.name : 'Devotee',
+                    customerEmail: user != null && user.email.isNotEmpty ? user.email : 'devotee@sannidhi.app',
+                    customerPhone: user != null && user.phone.isNotEmpty ? user.phone : '9999999999',
                   ).then((result) {
                     if (!context.mounted) return;
                     if (result.result == CashfreePaymentResult.success) {
+                      generateAndShowPass();
                       ScaffoldMessenger.of(context).showSnackBar(SnackBar(
                         content: Text('$title booked successfully 🙏'),
                         backgroundColor: AppColors.success,
@@ -318,10 +472,12 @@ class _ServiceDetailSheet extends StatelessWidget {
                           context: context,
                           amount: service.fee,
                           description: title,
-                          customerId: 'devotee_${DateTime.now().millisecondsSinceEpoch}',
-                          customerName: 'Devotee',
-                          customerEmail: 'devotee@sannidhi.app',
-                          customerPhone: '9999999999',
+                          customerId: user != null && user.id.isNotEmpty
+                              ? user.id
+                              : 'devotee_${DateTime.now().millisecondsSinceEpoch}',
+                          customerName: user != null && user.name.isNotEmpty ? user.name : 'Devotee',
+                          customerEmail: user != null && user.email.isNotEmpty ? user.email : 'devotee@sannidhi.app',
+                          customerPhone: user != null && user.phone.isNotEmpty ? user.phone : '9999999999',
                         ),
                       );
                     }
@@ -335,7 +491,7 @@ class _ServiceDetailSheet extends StatelessWidget {
     );
   }
 
-  Widget _detailRow(IconData icon, String label, String value) => Padding(
+  Widget _detailRow(BuildContext context, IconData icon, String label, String value) => Padding(
         padding: const EdgeInsets.only(bottom: 14),
         child: Row(
           crossAxisAlignment: CrossAxisAlignment.start,
@@ -347,14 +503,14 @@ class _ServiceDetailSheet extends StatelessWidget {
                 crossAxisAlignment: CrossAxisAlignment.start,
                 children: [
                   Text(label,
-                      style: const TextStyle(
+                      style: TextStyle(
                           fontSize: 11,
                           fontWeight: FontWeight.w600,
-                          color: AppTheme.textSecondary)),
+                          color: AppTheme.textSecondaryOf(context))),
                   const SizedBox(height: 2),
                   Text(value,
-                      style: const TextStyle(
-                          fontSize: 13, color: AppTheme.textPrimary)),
+                      style: TextStyle(
+                          fontSize: 13, color: AppTheme.textPrimaryOf(context))),
                 ],
               ),
             ),

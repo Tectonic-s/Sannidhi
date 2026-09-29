@@ -40,11 +40,14 @@ class CrowdForecasterChart extends StatelessWidget {
 
     final bestHour = bestIdx >= 0 ? points[bestIdx].$2 : null;
 
+    final isDark = AppTheme.isDark(context);
+
     return Container(
       padding: const EdgeInsets.all(16),
       decoration: BoxDecoration(
-        color: Colors.white,
+        color: isDark ? const Color(0xFF0A0A0A) : Colors.white,
         borderRadius: BorderRadius.circular(16),
+        border: Border.all(color: AppTheme.borderColor(context)),
         boxShadow: const [
           BoxShadow(color: Color(0x1A000000), blurRadius: 8, offset: Offset(0, 2))
         ],
@@ -55,15 +58,15 @@ class CrowdForecasterChart extends StatelessWidget {
           // Title
           Row(
             children: [
-              const Icon(Icons.people, color: AppTheme.primaryColor, size: 20),
+              Icon(Icons.people, color: isDark ? const Color(0xFFFBBF24) : AppTheme.primaryColor, size: 20),
               const SizedBox(width: 8),
               Expanded(
                 child: Text(
                   isTamil ? 'கோயிலில் எத்தனை கூட்டம் உள்ளது?' : 'How Busy is the Temple?',
-                  style: const TextStyle(
+                  style: TextStyle(
                       fontSize: 16,
                       fontWeight: FontWeight.w800,
-                      color: AppTheme.textPrimary),
+                      color: AppTheme.textPrimaryOf(context)),
                   overflow: TextOverflow.ellipsis,
                   maxLines: 1,
                 ),
@@ -73,7 +76,7 @@ class CrowdForecasterChart extends StatelessWidget {
           const SizedBox(height: 4),
           Text(
             isTamil ? 'திறப்பு: காலை 5:30 – பகல் 1:00 & மாலை 2:00 – 8:30' : 'Open: 5:30 AM–1 PM & 2–8:30 PM',
-            style: const TextStyle(fontSize: 12, color: AppTheme.textSecondary),
+            style: TextStyle(fontSize: 12, color: AppTheme.textSecondaryOf(context)),
             overflow: TextOverflow.ellipsis,
             maxLines: 1,
           ),
@@ -85,7 +88,7 @@ class CrowdForecasterChart extends StatelessWidget {
               width: double.infinity,
               padding: const EdgeInsets.symmetric(horizontal: 14, vertical: 10),
               decoration: BoxDecoration(
-                color: const Color(0xFF4CAF50).withValues(alpha: 0.1),
+                color: isDark ? const Color(0xFF0F2913) : const Color(0xFF4CAF50).withValues(alpha: 0.1),
                 borderRadius: BorderRadius.circular(12),
                 border: Border.all(color: const Color(0xFF4CAF50).withValues(alpha: 0.4)),
               ),
@@ -99,19 +102,19 @@ class CrowdForecasterChart extends StatelessWidget {
                       children: [
                         Text(
                           isTamil ? 'இன்று வருவதற்கு சிறந்த நேரம்' : 'Best time to visit today',
-                          style: const TextStyle(
+                          style: TextStyle(
                               fontSize: 12,
-                              color: Color(0xFF2E7D32),
+                              color: isDark ? const Color(0xFF86EFAC) : const Color(0xFF2E7D32),
                               fontWeight: FontWeight.w600),
                         ),
                         Text(
                           isTamil
                               ? '${_fmtFull(bestHour)} — மிகவும் குறைவான கூட்டம்! 😊'
                               : '${_fmtFull(bestHour)} — Very few people! 😊',
-                          style: const TextStyle(
+                          style: TextStyle(
                               fontSize: 14,
                               fontWeight: FontWeight.w800,
-                              color: Color(0xFF1B5E20)),
+                              color: isDark ? const Color(0xFF4ADE80) : const Color(0xFF1B5E20)),
                         ),
                       ],
                     ),
@@ -143,7 +146,7 @@ class CrowdForecasterChart extends StatelessWidget {
                       : 0.0;
 
                   final Color barColor = !open
-                      ? Colors.grey.shade300
+                      ? (isDark ? const Color(0xFF27272A) : Colors.grey.shade300)
                       : isPast
                           ? (isBest
                               ? const Color(0xFF4CAF50).withValues(alpha: 0.4)
@@ -172,8 +175,8 @@ class CrowdForecasterChart extends StatelessWidget {
                                   fontSize: 9,
                                   fontWeight: FontWeight.w700,
                                   color: isBest
-                                      ? const Color(0xFF2E7D32)
-                                      : AppTheme.textSecondary),
+                                      ? (isDark ? const Color(0xFF4ADE80) : const Color(0xFF2E7D32))
+                                      : AppTheme.textSecondaryOf(context)),
                             )
                           else
                             const SizedBox(height: 12),
@@ -198,10 +201,10 @@ class CrowdForecasterChart extends StatelessWidget {
                                     ? FontWeight.w800
                                     : FontWeight.w500,
                                 color: !open
-                                    ? Colors.grey.shade400
+                                    ? (isDark ? const Color(0xFF52525B) : Colors.grey.shade400)
                                     : isBest
-                                        ? const Color(0xFF2E7D32)
-                                        : AppTheme.textSecondary),
+                                        ? (isDark ? const Color(0xFF4ADE80) : const Color(0xFF2E7D32))
+                                        : AppTheme.textSecondaryOf(context)),
                           ),
                         ],
                       ),
@@ -221,17 +224,17 @@ class CrowdForecasterChart extends StatelessWidget {
                 Container(
                   width: 12, height: 12,
                   decoration: BoxDecoration(
-                      color: Colors.grey.shade300, shape: BoxShape.circle),
+                      color: isDark ? const Color(0xFF27272A) : Colors.grey.shade300, shape: BoxShape.circle),
                 ),
                 const SizedBox(width: 4),
                 Text(isTamil ? 'மூட்டப்பட்டது (மதிய இடைவேளை)' : 'Closed (lunch break)',
-                    style: TextStyle(fontSize: 10, color: Colors.grey.shade500)),
+                    style: TextStyle(fontSize: 10, color: isDark ? const Color(0xFF71717A) : Colors.grey.shade500)),
                 const SizedBox(width: 16),
-                _legend(const Color(0xFF4CAF50), isTamil ? 'குறைவு' : 'Few'),
+                _legend(context, const Color(0xFF4CAF50), isTamil ? 'குறைவு' : 'Few'),
                 const SizedBox(width: 12),
-                _legend(const Color(0xFFFF9800), isTamil ? 'சராசரி' : 'Moderate'),
+                _legend(context, const Color(0xFFFF9800), isTamil ? 'சராசரி' : 'Moderate'),
                 const SizedBox(width: 12),
-                _legend(const Color(0xFFF44336), isTamil ? 'அதிகம்' : 'Crowded'),
+                _legend(context, const Color(0xFFF44336), isTamil ? 'அதிகம்' : 'Crowded'),
               ],
             ),
           ),
@@ -240,7 +243,7 @@ class CrowdForecasterChart extends StatelessWidget {
     );
   }
 
-  Widget _legend(Color color, String label) => Row(
+  Widget _legend(BuildContext context, Color color, String label) => Row(
         children: [
           Container(
             width: 12, height: 12,
@@ -248,7 +251,7 @@ class CrowdForecasterChart extends StatelessWidget {
           ),
           const SizedBox(width: 4),
           Text(label,
-              style: const TextStyle(fontSize: 10, color: AppTheme.textSecondary)),
+              style: TextStyle(fontSize: 10, color: AppTheme.textSecondaryOf(context))),
         ],
       );
 

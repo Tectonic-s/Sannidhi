@@ -57,11 +57,13 @@ class _MockPaymentSheetState extends State<_MockPaymentSheet> {
 
   @override
   Widget build(BuildContext context) {
+    final isDark = AppTheme.isDark(context);
     return Container(
       margin: const EdgeInsets.fromLTRB(12, 0, 12, 28),
       decoration: BoxDecoration(
-        color: Colors.white,
+        color: isDark ? const Color(0xFF0A0A0A) : Colors.white,
         borderRadius: BorderRadius.circular(24),
+        border: Border.all(color: AppTheme.borderColor(context)),
       ),
       child: Column(
         mainAxisSize: MainAxisSize.min,
@@ -69,15 +71,15 @@ class _MockPaymentSheetState extends State<_MockPaymentSheet> {
           _handle(),
           _header(),
           if (_processing)
-            const Padding(
-              padding: EdgeInsets.symmetric(vertical: 32),
+            Padding(
+              padding: const EdgeInsets.symmetric(vertical: 32),
               child: Column(
                 children: [
                   CircularProgressIndicator(color: AppTheme.primaryColor),
                   SizedBox(height: 16),
                   Text('Verifying payment…',
                       style: TextStyle(
-                          fontSize: 14, color: AppTheme.textSecondary)),
+                          fontSize: 14, color: AppTheme.textSecondaryOf(context))),
                 ],
               ),
             )
@@ -102,7 +104,7 @@ class _MockPaymentSheetState extends State<_MockPaymentSheet> {
         width: 40,
         height: 4,
         decoration: BoxDecoration(
-          color: Colors.grey.shade300,
+          color: AppTheme.isDark(context) ? const Color(0xFF27272A) : Colors.grey.shade300,
           borderRadius: BorderRadius.circular(2),
         ),
       );
@@ -141,10 +143,10 @@ class _MockPaymentSheetState extends State<_MockPaymentSheet> {
         child: Align(
           alignment: Alignment.centerLeft,
           child: Text(text,
-              style: const TextStyle(
+              style: TextStyle(
                   fontSize: 13,
                   fontWeight: FontWeight.w600,
-                  color: AppTheme.textSecondary)),
+                  color: AppTheme.textSecondaryOf(context))),
         ),
       );
 
@@ -170,10 +172,10 @@ class _MockPaymentSheetState extends State<_MockPaymentSheet> {
                   ),
                   const SizedBox(height: 6),
                   Text(app.$1,
-                      style: const TextStyle(
+                      style: TextStyle(
                           fontSize: 11,
                           fontWeight: FontWeight.w600,
-                          color: AppTheme.textPrimary)),
+                          color: AppTheme.textPrimaryOf(context))),
                 ],
               ),
             );
@@ -197,22 +199,22 @@ class _MockPaymentSheetState extends State<_MockPaymentSheet> {
         child: Container(
           padding: const EdgeInsets.symmetric(horizontal: 16, vertical: 14),
           decoration: BoxDecoration(
-            color: Colors.grey.shade50,
+            color: AppTheme.isDark(context) ? const Color(0xFF141414) : Colors.grey.shade50,
             borderRadius: BorderRadius.circular(12),
-            border: Border.all(color: Colors.grey.shade200),
+            border: Border.all(color: AppTheme.borderColor(context)),
           ),
           child: Row(
             children: [
               Icon(icon, color: AppTheme.primaryColor, size: 22),
               const SizedBox(width: 12),
               Text(label,
-                  style: const TextStyle(
+                  style: TextStyle(
                       fontSize: 14,
                       fontWeight: FontWeight.w500,
-                      color: AppTheme.textPrimary)),
+                      color: AppTheme.textPrimaryOf(context))),
               const Spacer(),
-              const Icon(Icons.chevron_right,
-                  color: AppTheme.textSecondary, size: 20),
+              Icon(Icons.chevron_right,
+                  color: AppTheme.textSecondaryOf(context), size: 20),
             ],
           ),
         ),
