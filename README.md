@@ -17,10 +17,6 @@
 [![License: MIT](https://img.shields.io/badge/License-MIT-yellow.svg?style=for-the-badge)](LICENSE)
 [![Release](https://img.shields.io/badge/Release-v2.0-success?style=for-the-badge)]()
 
-<br/>
-
-![Sannidhi Hero Banner](assets/images/readme_hero_banner.png)
-
 </div>
 
 ---
@@ -79,11 +75,33 @@ graph LR
 
 Sannidhi provides tailored, dedicated interfaces specifically built for each operational tier:
 
-<div align="center">
-  <img src="assets/images/readme_roles_architecture.png" alt="Sannidhi 3-Tier Architecture" width="92%" />
-</div>
+```mermaid
+graph TD
+    subgraph T1 [🕊️ Devotee & Pilgrim Portal]
+        direction TB
+        A1[Darshan & Seva Scheduling]
+        A2[Shuttle Bus Booking]
+        A3[Live Ticket Carousel & QR Passes]
+        A4[Interactive Facility Directory]
+        A5[E-Undiyal & 80G Receipts]
+    end
 
-<br/>
+    subgraph T2 [🛡️ Gate Staff Security Portal]
+        direction TB
+        B1[High-Speed Camera Scanner]
+        B2[Zero-Trust Anti-Passback]
+        B3[Expiration Verification]
+        B4[Offline-Resilient Validation]
+    end
+
+    subgraph T3 [🏛️ Temple Command Center]
+        direction TB
+        C1[Live Telemetry & Crowd Gauges]
+        C2[Emergency Push Broadcasts]
+        C3[Festival & Ritual Registry]
+        C4[Audit Logs & Gate Throughput]
+    end
+```
 
 ### 1. Devotee & Pilgrim Portal
 - **Darshan & Seva Scheduling**: Reserve time slots for Special Darshan, Free Dharma Darshan, Abhishekam, and Cave Visits.
