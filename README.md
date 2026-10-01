@@ -1,335 +1,203 @@
 <div align="center">
 
-<img src="assets/images/Light-Logo.png" alt="Sannidhi Logo" width="380" />
+<img src="assets/images/Light-Logo.png" alt="Sannidhi Logo" width="360" />
 
-### Next-Generation Smart Temple & Pilgrimage Management Ecosystem
-*Seamlessly connecting Pilgrims, Gate Staff, and Temple Administrators with AI guidance, real-time telemetry, and digital darshan.*
+# Sannidhi (சந்நிதி)
+### The Intelligent Operating System for Sacred Temples & Pilgrimages
+
+*Elevating the pilgrim journey with sub-second digital darshan passes, live crowd telemetry, bilingual AI assistance, and zero-trust temple gate verification.*
 
 <br/>
 
-[![Flutter Version](https://img.shields.io/badge/Flutter-3.x-02569B?style=for-the-badge&logo=flutter&logoColor=white)](https://flutter.dev)
-[![Dart Version](https://img.shields.io/badge/Dart-3.x-0175C2?style=for-the-badge&logo=dart&logoColor=white)](https://dart.dev)
-[![Node.js](https://img.shields.io/badge/Backend-Node.js%20%7C%20Express-339933?style=for-the-badge&logo=nodedotjs&logoColor=white)](https://nodejs.org)
-[![SQLite](https://img.shields.io/badge/Database-SQLite%203-003B57?style=for-the-badge&logo=sqlite&logoColor=white)](https://sqlite.org)
-[![Firebase](https://img.shields.io/badge/Cloud-Firebase%20%28Auth%20%26%20Firestore%29-FFCA28?style=for-the-badge&logo=firebase&logoColor=black)](https://firebase.google.com)
-[![Gemini AI](https://img.shields.io/badge/AI-Google%20Gemini-8E75C2?style=for-the-badge&logo=google&logoColor=white)](https://ai.google.dev)
-[![Cashfree](https://img.shields.io/badge/Payments-Cashfree%20PG-29B6F6?style=for-the-badge&logo=googlepay&logoColor=white)](https://www.cashfree.com)
-[![License: MIT](https://img.shields.io/badge/License-MIT-yellow.svg?style=for-the-badge)](LICENSE)
-[![Release](https://img.shields.io/badge/Release-v2.0-success?style=for-the-badge)]()
+[![Download APK](https://img.shields.io/badge/Download_APK-v2.0_Stable-059669?style=for-the-badge&logo=android&logoColor=white)](https://github.com/Tectonic-s/Sannidhi/releases/tag/v2.0)
+[![Flutter](https://img.shields.io/badge/Flutter-3.x-02569B?style=for-the-badge&logo=flutter&logoColor=white)](https://flutter.dev)
+[![Gemini AI](https://img.shields.io/badge/AI_Powered-Google_Gemini-8E75C2?style=for-the-badge&logo=google&logoColor=white)](https://ai.google.dev)
+[![Node.js](https://img.shields.io/badge/Backend-Node.js_Fastify/Express-339933?style=for-the-badge&logo=nodedotjs&logoColor=white)](https://nodejs.org)
+[![Payments](https://img.shields.io/badge/Payments-Cashfree_PG-29B6F6?style=for-the-badge&logo=googlepay&logoColor=white)](https://www.cashfree.com)
+[![License: MIT](https://img.shields.io/badge/License-MIT-F59E0B?style=for-the-badge)](LICENSE)
+
+<br/>
+
+<!-- HERO PRODUCT SHOWCASE -->
+<p align="center">
+  <img src="docs/assets/hero_mockup.png" alt="Sannidhi App Suite Showcase" width="100%" />
+</p>
 
 </div>
 
 ---
 
-## 📖 Table of Contents
-- [🌟 Executive Overview](#-executive-overview)
-- [✨ Key Pillars & Innovations](#-key-pillars--innovations)
-- [🎭 3-Tier Role Architecture](#-3-tier-role-architecture)
-  - [1. Devotee & Pilgrim Portal](#1-devotee--pilgrim-portal)
-  - [2. Gate Staff Security & Verification Scanner](#2-gate-staff-security--verification-scanner)
-  - [3. Temple Administrator Command Center](#3-temple-administrator-command-center)
-- [🤖 Thunai AI (துணை AI) Guide](#-thunai-ai-துணை-ai-guide)
-- [📊 Intelligent Crowd Analytics & Telemetry](#-intelligent-crowd-analytics--telemetry)
-- [🗓️ Tamil Panchangam & Festival Engine](#️-tamil-panchangam--festival-engine)
-- [💳 Secure E-Undiyal & Instant 80G Receipts](#-secure-e-undiyal--instant-80g-receipts)
-- [♿ Accessibility & Elderly Inclusivity](#-accessibility--elderly-inclusivity)
-- [🏗️ Architectural Blueprint](#️-architectural-blueprint)
-- [📁 Codebase Map](#-codebase-map)
-- [🚀 Quick Start & Installation](#-quick-start--installation)
-- [🧪 Automated Test Suite](#-automated-test-suite)
-- [📌 Version History](#-version-history)
-- [📄 License & Authors](#-license--authors)
+## ⚡ The Modern Pilgrimage Dilemma & The Sannidhi Solution
+
+Prominent heritage temples manage footfalls exceeding tens of thousands of daily visitors. Traditional management models lead to extreme physical wait times, gate congestion, forged passes, and communication breakdowns during peak festivals.
+
+| The Legacy Experience | The Sannidhi Experience |
+|:---|:---|
+| ⏳ **Unpredictable 4-6 hour queues** in extreme weather | ⚡ **Guaranteed digital slots** with live crowd forecast charts |
+| 🎟️ **Physical paper tickets** vulnerable to forgery | 🛡️ **Encrypted dynamic QR tokens** with anti-passback security |
+| ❓ **Language & etiquette barriers** for visitors | 🤖 **Thunai AI (துணை AI)**: 24/7 bilingual spiritual concierge |
+| 📢 **Delayed administrative emergency advisories** | 📡 **Instant push broadcasts** directly to all connected pilgrims |
+| 💸 **Opaque cash queues** at temple hundi counters | 💳 **Instant digital E-Undiyal** with automated 80G tax receipts |
 
 ---
 
-## 🌟 Executive Overview
+## 📱 Product Showcase
 
-Ancient pilgrimage centers and major sacred temples often encounter monumental challenges: crushing footfalls of tens of thousands of daily devotees, hours of unmanaged physical queueing, language hurdles for international visitors, security vulnerabilities at entry portals, and cumbersome administrative communication.
+### 1. The Devotee Experience
+> *Designed for serenity, ease of use, and multi-generational accessibility.*
 
-**Sannidhi** (சந்நிதி) transforms traditional temple visits into a streamlined, safe, and deeply enriching spiritual experience. Powered by a high-performance **Flutter** mobile client, a resilient **Node.js/SQLite** engine, **Firebase** real-time streams, and **Google Gemini AI**, Sannidhi acts as a complete end-to-end pilgrimage management operating system.
+<p align="center">
+  <img src="docs/assets/devotee_experience.png" alt="Devotee Mobile Interface" width="100%" />
+</p>
+
+* **Smart Darshan & Seva Scheduling**: Reserve exact arrival windows for Dharma Darshan, Special Entry, Abhishekam, or Eco-Shuttle Hill transits.
+* **Offline Dynamic Ticket Wallet**: Interactive carousel displaying cryptographically verifiable QR passes, slot countdowns, and devotee counts—available offline.
+* **Daily Vedic Panchangam**: Real-time astrological timings including Tithi, Nakshatram, Rahu Kalam, Yamagandam, and auspicious festival notifications.
+* **Elderly & High-Contrast Mode**: Single-tap toggle for 18pt+ typography, amplified touch targets, and high-visibility saffron palettes for senior devotees.
+
+---
+
+### 2. Thunai AI (துணை AI) — Personal Pilgrimage Concierge
+> *Generative AI trained specifically for sacred traditions, rituals, and temple navigation.*
+
+<p align="center">
+  <img src="docs/assets/thunai_ai_chat.png" alt="Thunai AI Interface" width="100%" />
+</p>
+
+* **Bilingual Intelligence**: Converse seamlessly in Tamil (தமிழ்) and English with deep contextual and cultural fluency.
+* **Live Operational Guidance**: Instant answers regarding daily pooja schedules, prasad counters, dress codes, queue wait-times, and wheelchair availability.
+* **Vedic Knowledge Engine**: Devotees can ask about the history, significance, and rituals of major festivals like *Thaipusam*, *Panguni Uthiram*, and *Karthigai Deepam*.
+
+---
+
+### 3. Real-Time Crowd Telemetry & Facility Locator
+> *Transforming crowd congestion from a hazard into a predictable, smooth flow.*
+
+<p align="center">
+  <img src="docs/assets/crowd_analytics.png" alt="Crowd Telemetry & Campus Directory" width="100%" />
+</p>
+
+* **Hourly Crowd Forecaster**: Predictive chart showing historical and live visitor saturation to guide devotees toward quieter sanctum hours.
+* **Interactive Campus Directory**: Categorized map directory pinpointing Annadhanam halls, medical aid, prasad distribution, cloakrooms, and battery car hubs.
+* **Geofenced Arrival Triggers**: Automatic welcome greetings, etiquette guides, and active gate updates upon crossing the temple perimeter.
+
+---
+
+### 4. Gate Staff Verification & Anti-Passback Guard
+> *High-throughput gate security built for peak festival surges.*
+
+<p align="center">
+  <img src="docs/assets/staff_scanner.png" alt="Gate Staff Security Scanner" width="100%" />
+</p>
+
+* **Sub-Second QR Ingestion**: Powered by hardware-accelerated camera scanning for rapid entry validation.
+* **Anti-Passback Enforcement**: Instantly detects and flags duplicate scans or expired passes with loud audio-visual confirmations (`ENTRY GRANTED`, `ALREADY USED`, `INVALID`).
+* **Offline Resilience**: Continues validating entry passes even during intermittent hilltop network outages.
+
+---
+
+### 5. Temple Administrator Command Center
+> *Complete campus observability and live crowd control in one central console.*
+
+<p align="center">
+  <img src="docs/assets/admin_dashboard.png" alt="Admin Command Console" width="100%" />
+</p>
+
+* **Campus Saturation Gauges**: Real-time visualization of current sanctum occupancy, gate throughput rates, and queue velocity.
+* **Emergency Push Broadcasts**: Instantly dispatch high-priority safety advisories, weather updates, or procession routes to thousands of devotee devices.
+* **Festival & Seva Registry**: Effortlessly update darshan timings, special ticket quotas, and festival schedules in real time.
+
+---
+
+## 🏛️ System Architecture
 
 ```mermaid
-graph LR
-    A[🕊️ Devotee Mobile App] <-->|Rest API & Firestore| D[⚡ Sannidhi Backend]
-    B[🛡️ Gate Staff Scanner] <-->|High-Speed QR Verification| D
-    C[🏛️ Temple Admin Center] <-->|Telemetry & Broadcasts| D
-    D <-->|Google Gemini SDK| E[🤖 Thunai AI Assistant]
-    D <-->|PG Webhook| F[💳 Cashfree Gateway]
+flowchart LR
+    subgraph Users [End-User Touchpoints]
+        A[🕊️ Devotee App<br/>Android & iOS]
+        B[🛡️ Gate Staff Scanner<br/>High-Speed Mobile]
+        C[🏛️ Admin Command<br/>Telemetry Dashboard]
+    end
+
+    subgraph Core [Sannidhi Cloud & Services]
+        D[⚡ REST API Engine<br/>Node.js / Express]
+        E[(Data Layer<br/>SQLite / Cloud DB)]
+        F[🔥 Firebase Services<br/>Realtime Stream & Push]
+    end
+
+    subgraph External [Integrated Ecosystem]
+        G[🤖 Google Gemini AI<br/>Thunai Intelligence]
+        H[💳 Cashfree Gateway<br/>UPI & 80G Receipts]
+    end
+
+    Users <--> Core
+    Core <--> External
 ```
 
 ---
 
-## ✨ Key Pillars & Innovations
+## 🚀 Getting Started
 
-| Pillar | Technical Solution | Impact on Pilgrimage |
-|---|---|---|
-| **Crowd Mitigation** | Dynamic slot booking + Hourly fl_chart flow forecaster | Reduced average sanctum wait times from 4 hours to under 30 minutes |
-| **Bilingual Accessibility** | Seamless English ⇄ Tamil translation with high-contrast Elderly Mode | Equal accessibility for elderly devotees with 18pt+ font and large touch targets |
-| **Fraud Prevention** | Encrypted QR tokens with Anti-Passback & instant expiry checks | Elimination of duplicate passes and queue-jumping at sanctum gates |
-| **Instant Transparency** | Automated Cashfree PG transactions with instant 80G tax-exempt PDF receipts | 100% auditable digital donations directly credited to temple trust accounts |
-| **Spiritual Enrichment** | Embedded daily Panchangam (Tithi, Nakshatra, Rahu Kalam) & Thunai AI | Devotees receive instant, respectful answers about rituals, timings, and code of conduct |
+### Download the App
+Get the latest production release directly on your Android phone:
+
+👉 **[Download Sannidhi v2.0 APK (Latest)](https://github.com/Tectonic-s/Sannidhi/releases/tag/v2.0)**
 
 ---
 
-## 🎭 3-Tier Role Architecture
+### Local Development Setup
 
-Sannidhi provides tailored, dedicated interfaces specifically built for each operational tier:
-
-```mermaid
-graph TD
-    subgraph T1 [🕊️ Devotee & Pilgrim Portal]
-        direction TB
-        A1[Darshan & Seva Scheduling]
-        A2[Shuttle Bus Booking]
-        A3[Live Ticket Carousel & QR Passes]
-        A4[Interactive Facility Directory]
-        A5[E-Undiyal & 80G Receipts]
-    end
-
-    subgraph T2 [🛡️ Gate Staff Security Portal]
-        direction TB
-        B1[High-Speed Camera Scanner]
-        B2[Zero-Trust Anti-Passback]
-        B3[Expiration Verification]
-        B4[Offline-Resilient Validation]
-    end
-
-    subgraph T3 [🏛️ Temple Command Center]
-        direction TB
-        C1[Live Telemetry & Crowd Gauges]
-        C2[Emergency Push Broadcasts]
-        C3[Festival & Ritual Registry]
-        C4[Audit Logs & Gate Throughput]
-    end
-```
-
-### 1. Devotee & Pilgrim Portal
-- **Darshan & Seva Scheduling**: Reserve time slots for Special Darshan, Free Dharma Darshan, Abhishekam, and Cave Visits.
-- **Electric Shuttle Booking**: Reserve seats on temple-hill eco shuttles with real-time route updates.
-- **Live Ticket Carousel**: Interactive, offline-cached ticket wallet displaying dynamic QR codes, devotee count, and slot countdowns.
-- **Facility Locator**: Interactive map directory pinpointing Annadhanam halls, medical centers, prasad counters, wheelchair ramps, and cloaking rooms.
-
-### 2. Gate Staff Security & Verification Scanner
-- **Ultra-Fast Camera Scanning**: Utilizing `mobile_scanner` to verify devotee QR codes in milliseconds.
-- **Zero-Trust Anti-Passback**: Real-time validation preventing duplicate entry attempts with loud audible/visual prompts (`VALID ENTRY`, `ENTRY REJECTED - ALREADY USED`, or `EXPIRED`).
-- **Offline Resilient**: Local state validation ensures gates never freeze even during cellular degradation on hilltops.
-
-### 3. Temple Administrator Command Center
-- **Live Telemetry & Capacity Gauges**: Real-time monitor tracking hourly visitor counts, sanctum crowd saturation percentage, and gate throughput.
-- **Push Broadcast System**: Instantly transmit emergency advisories, weather warnings, or festival announcements straight to thousands of connected devotee screens via Firebase.
-- **Festival & Seva Registry**: Effortlessly update festival dates, special rituals, and pooja schedules in real-time.
-
----
-
-## 🤖 Thunai AI (துணை AI) Guide
-
-<div align="center">
-  <blockquote>
-    <i>"துணை (Thunai) — Your trusted, knowledgeable spiritual and logistical companion throughout your sacred journey."</i>
-  </blockquote>
-</div>
-
-Integrated directly into Sannidhi is **Thunai AI**, driven by Google's **Gemini Generative AI**:
-- **Culturally Aware & Reverent**: Trained with deep domain knowledge of traditional temple etiquette, dress codes, rituals, and sacred lore.
-- **Real-Time Operational Queries**: Answers devotee inquiries such as *"What time is evening Sayaratchai pooja?"*, *"Where can I obtain prasad?"*, or *"Are wheelchairs available at North Gate?"*.
-- **Full Bilingual Dialogue**: Fluidly switches between formal/colloquial Tamil and English without losing spiritual context.
-
----
-
-## 📊 Intelligent Crowd Analytics & Telemetry
-
-Crowd congestion is solved through predictive data modeling:
-- **Hourly Crowd Forecaster**: Devotees review real-time queue graphs built using `fl_chart`, showing low, moderate, and peak crowd hours.
-- **Smart Visit Planner**: Personalized recommendations for the most auspicious and least crowded time slots to plan a peaceful visit.
-- **Geofenced Campus Alerts**: Background geolocation notifications that welcome devotees upon crossing temple boundaries and display live gate queue advisories.
-
----
-
-## 🗓️ Tamil Panchangam & Festival Engine
-
-For devotees timing their visit according to auspicious planetary hours:
-- **Daily Panchangam Card**: Displays accurate **Tithi**, **Nakshatram**, **Yogam**, **Karanam**, **Rahu Kalam**, **Yamagandam**, and **Kuligai**.
-- **Auspicious Muhurtham Timings**: Dedicated alerts for Amavasai, Pournami, Sashti, Pradosham, and Ekadasi.
-- **Temple Festival Directory**: Deep cultural guides for grand festivals like *Thaipusam*, *Panguni Uthiram*, *Vaikasi Visakam*, and *Karthigai Deepam*.
-
----
-
-## 💳 Secure E-Undiyal & Instant 80G Receipts
-
-Supporting sacred temple projects, Annadhanam (free meal distribution), and heritage preservation:
-- **Integrated Cashfree PG**: Seamless checkout supporting UPI (Google Pay, PhonePe, Paytm), Credit/Debit cards, and Net Banking.
-- **Instant Tax Receipts**: Generates signed, downloadable PDF receipts compliant with Section 80G of the Indian Income Tax Act.
-- **Custom Seva Intentions**: Allows devotees to dedicate their donation with personal prayers, gothram, and nakshatra details.
-
----
-
-## ♿ Accessibility & Elderly Inclusivity
-
-Sannidhi is built for everyone, especially senior devotees and rural pilgrims:
-- **Elderly High-Contrast Mode**: Single-tap switch activating high-contrast saffron/maroon palettes, bold borders, 18pt+ readable typography, and enlarged minimum touch targets (64px+).
-- **Instant Language Switcher**: Persistent toggle between English and Tamil on every screen.
-- **Screen Reader Optimized**: Complete semantic labels for smooth navigation with TalkBack (Android) and VoiceOver (iOS).
-
----
-
-## 🏗️ Architectural Blueprint
-
-```mermaid
-flowchart TD
-    subgraph Client [Flutter Presentation Layer]
-        A[Splash & Role Router]
-        B[Devotee MainNavigationScreen]
-        C[Gate Staff Scanner View]
-        D[Admin Command Center]
-    end
-
-    subgraph State [State & Provider Layer]
-        E[AuthProvider]
-        F[MockCrowdRepository]
-        G[MockFestivalRepository]
-        H[UserActivityProvider]
-        I[AccessibilityProvider]
-        J[BulletinProvider]
-    end
-
-    subgraph Core [Core Engine & Services]
-        K[FirebaseService]
-        L[GeofenceService]
-        M[NotificationService]
-        N[CashfreePaymentService]
-        O[Gemini AI Service]
-    end
-
-    subgraph Backend [Sannidhi Node.js REST API]
-        P[Express HTTP Gateway]
-        Q[JWT & Role Auth Middleware]
-        R[(SQLite Database / sannidhi.db)]
-    end
-
-    Client --> State
-    State --> Core
-    Core --> Backend
-```
-
----
-
-## 📁 Codebase Map
-
-```text
-MiniProject/
-├── backend/                             # High-performance Node.js API
-│   ├── db.js                            # SQLite schema, tables & migrations
-│   ├── server.js                        # REST endpoints (Auth, Bookings, Festivals, Panchang)
-│   ├── middleware/                      # JWT auth & role validation
-│   └── package.json
-│
-└── sannidhi/                            # Flutter Multi-Platform App
-    ├── lib/
-    │   ├── main.dart                    # Application bootstrap & navigation
-    │   ├── core/
-    │   │   ├── constants/               # Colors, AppTheme, typography tokens
-    │   │   ├── services/                # Firebase, Geofence, Notifications, Payments
-    │   │   ├── utils/                   # QR generators, validators, date helpers
-    │   │   └── widgets/                 # Tickers, Panchang, charts, custom dialogs
-    │   ├── data/
-    │   │   ├── models/                  # Booking, user, crowd & festival entities
-    │   │   ├── repositories/            # Mock & live data sources
-    │   │   └── services/                # Local temple knowledge base
-    │   ├── presentation/
-    │   │   ├── views/
-    │   │   │   ├── home/                # Main devotee dashboard
-    │   │   │   ├── bookings/            # Darshan & shuttle slot reservation
-    │   │   │   ├── festivals/           # Festival calendar & rituals
-    │   │   │   ├── facility/            # Interactive campus directory & maps
-    │   │   │   ├── donation/            # E-Undiyal & 80G tax receipt generator
-    │   │   │   ├── staff/               # Gate staff QR verification scanner
-    │   │   │   ├── admin/               # Executive command center & broadcasts
-    │   │   │   └── more/                # Profile, accessibility & language settings
-    │   └── providers/                   # Reactive state management
-    │
-    └── test/                            # Comprehensive unit & widget test suite
-        ├── advance_booking_test.dart
-        ├── role_routing_test.dart
-        ├── festival_repository_test.dart
-        ├── ticket_expiration_and_live_scan_test.dart
-        └── ai_assistant_dialog_test.dart
-```
-
----
-
-## 🚀 Quick Start & Installation
-
-### Prerequisites
-- **Flutter SDK**: `^3.12.0` or higher ([Install Flutter](https://flutter.dev/docs/get-started/install))
-- **Node.js**: `v18.0.0` or higher ([Install Node.js](https://nodejs.org))
-- **Java**: JDK 17+ (for Android builds)
-- **Xcode**: 15+ (for iOS builds on macOS)
-
-### 1. Backend Server Setup
+#### 1. Clone the Repository
 ```bash
-# Navigate to the backend directory
+git clone https://github.com/Tectonic-s/Sannidhi.git
+cd Sannidhi
+```
+
+#### 2. Start the Backend API
+```bash
 cd backend
-
-# Install dependencies
 npm install
-
-# Start the local development server (runs on port 5001)
 npm start
 ```
+*The local API will start on `http://localhost:5001`.*
 
-### 2. Flutter App Setup
+#### 3. Run the Flutter App
 ```bash
-# Navigate to the mobile app directory
-cd sannidhi
-
-# Fetch all Flutter dependencies
+cd ../sannidhi
 flutter pub get
-
-# Setup API credentials (optional, sample provided)
-cp lib/core/constants/api_keys.dart.example lib/core/constants/api_keys.dart
-
-# Launch on connected device or emulator
 flutter run
 ```
 
 ---
 
-## 🧪 Automated Test Suite
+## 📦 Production Build
 
-Sannidhi is built with test-driven quality assurance, featuring **15 comprehensive test suites**:
+To generate the production APK with automatic naming:
 
 ```bash
 cd sannidhi
-flutter test
+flutter build apk --release --no-tree-shake-icons
+```
+The output will be generated at:
+```text
+build/app/outputs/apk/release/Sannidhi-v2.0.apk
 ```
 
-### Test Coverage Highlights:
-- ✅ **Role-Based Security**: Validates strict routing isolation across Devotee, Staff, and Admin credentials.
-- ✅ **Anti-Passback Guard**: Verifies that re-scanned or expired tickets are rejected immediately at the gates.
-- ✅ **Tamil Typography & Layout**: Rigorously tests all UI elements to ensure zero pixel-overflow in regional language modes.
-- ✅ **Dark & Elderly Theme Conformance**: Asserts contrast ratios and touch-target minimums across every screen.
+---
+
+## 🤝 Contributing & Version Control
+We maintain professional software engineering standards. All enhancements, bugfixes, and UI updates must go through dedicated feature branches:
+
+1. Create a feature branch: `git checkout -b feature/your-feature-name`
+2. Commit with conventional commit messages (`feat:`, `fix:`, `docs:`, `perf:`)
+3. Open a Pull Request targeting `main`.
 
 ---
 
-## 📌 Version History
-
-- **`v2.0` (Latest Release)**:
-  - 🎨 Complete visual & UI overhaul across all primary views.
-  - 🛡️ 3-Tier Role Architecture with dedicated Staff Scanner and Admin Telemetry screens.
-  - 🤖 Google Gemini-powered Thunai AI integration.
-  - 💳 Cashfree Payment Gateway with automated 80G PDF receipt generation.
-  - 🧪 15 end-to-end automated test suites.
-- **`v1.0` (MVP Release)**:
-  - Initial working release with core darshan slot booking, Tamil Panchangam card, and basic crowd forecast.
-
----
-
-## 📄 License & Authors
-
-Distributed under the **MIT License**. See `LICENSE` for more information.
-
-Developed with ❤️ for temples, pilgrims, and modern community management.
+## 📄 License
+This project is licensed under the **MIT License** — see the [LICENSE](LICENSE) file for details.
 
 <div align="center">
-  <b>Sannidhi (சந்நிதி) • Preserving Tradition through Technology</b>
+  <br/>
+  <b>Sannidhi (சந்நிதி) • Bridging Heritage and Innovation</b>
 </div>
