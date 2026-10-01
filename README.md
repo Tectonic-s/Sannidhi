@@ -1,6 +1,6 @@
 <div align="center">
 
-<img src="assets/images/Light-Logo.png" alt="Sannidhi Logo" width="360" />
+<img src="assets/images/Light-Logo.png" alt="Sannidhi Logo" width="260" />
 
 # Sannidhi (சந்நிதி)
 ### The Intelligent Operating System for Sacred Temples & Pilgrimages
