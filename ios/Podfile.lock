@@ -1,22 +1,71 @@
 PODS:
+  - CashfreeAnalyticsSDK (2.3.3):
+    - CFNetworkSDK (= 2.3.3)
+  - CashfreePG (2.4.0):
+    - CashfreePGUISDK (= 2.4.0)
+  - CashfreePGCoreSDK (2.4.0):
+    - CashfreeAnalyticsSDK (= 2.3.3)
+  - CashfreePGUISDK (2.4.0):
+    - CashfreePGCoreSDK (= 2.4.0)
+  - CFNetworkSDK (2.3.3)
   - Flutter (1.0.0)
+  - flutter_cashfree_pg_sdk (0.0.1):
+    - CashfreePG (= 2.4.0)
+    - Flutter
   - flutter_local_notifications (0.0.1):
     - Flutter
+  - printing (1.0.0):
+    - Flutter
+  - razorpay-core-pod (1.0.9)
+  - razorpay-pod (1.5.8):
+    - razorpay-core-pod (= 1.0.9)
+  - razorpay_flutter (1.1.10):
+    - Flutter
+    - razorpay-pod
 
 DEPENDENCIES:
   - Flutter (from `Flutter`)
+  - flutter_cashfree_pg_sdk (from `.symlinks/plugins/flutter_cashfree_pg_sdk/ios`)
   - flutter_local_notifications (from `.symlinks/plugins/flutter_local_notifications/ios`)
+  - printing (from `.symlinks/plugins/printing/ios`)
+  - razorpay_flutter (from `.symlinks/plugins/razorpay_flutter/ios`)
+
+SPEC REPOS:
+  trunk:
+    - CashfreeAnalyticsSDK
+    - CashfreePG
+    - CashfreePGCoreSDK
+    - CashfreePGUISDK
+    - CFNetworkSDK
+    - razorpay-core-pod
+    - razorpay-pod
 
 EXTERNAL SOURCES:
   Flutter:
     :path: Flutter
+  flutter_cashfree_pg_sdk:
+    :path: ".symlinks/plugins/flutter_cashfree_pg_sdk/ios"
   flutter_local_notifications:
     :path: ".symlinks/plugins/flutter_local_notifications/ios"
+  printing:
+    :path: ".symlinks/plugins/printing/ios"
+  razorpay_flutter:
+    :path: ".symlinks/plugins/razorpay_flutter/ios"
 
 SPEC CHECKSUMS:
+  CashfreeAnalyticsSDK: 11f37b2323be07bf07948bd6046b7c19e947ae07
+  CashfreePG: 9dfcc5badd0b815312e79923fca49d7e6cf1d55d
+  CashfreePGCoreSDK: 223fc3591ac75f427dc926b9df6b7c17ffa37c67
+  CashfreePGUISDK: 3cb94a859c1aba120c345fe0940685f2fc4634a7
+  CFNetworkSDK: 6a6261de10185efd4d2957583f0cbad395999cac
   Flutter: cabc95a1d2626b1b06e7179b784ebcf0c0cde467
+  flutter_cashfree_pg_sdk: 6e863aa7f5b31bc0d58010993642edae146e3b5b
   flutter_local_notifications: 395056b3175ba4f08480a7c5de30cd36d69827e4
+  printing: 54ff03f28fe9ba3aa93358afb80a8595a071dd07
+  razorpay-core-pod: 7ecea8ed3c47751e6a958f6c88126ea068f8c8fc
+  razorpay-pod: 3fc296eacb28a059c55144286ea7c04d33d894f5
+  razorpay_flutter: 0e98e4fcaae27ad50e011d85f66d85e0a008754a
 
-PODFILE CHECKSUM: 3c63482e143d1b91d2d2560aee9fb04ecc74ac7e
+PODFILE CHECKSUM: 288656d4464589360115d6f81dd5d8f559352730
 
 COCOAPODS: 1.17.0

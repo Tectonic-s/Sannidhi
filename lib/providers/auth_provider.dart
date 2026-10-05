@@ -1,5 +1,4 @@
 import 'dart:convert';
-import 'dart:io';
 import 'package:flutter/foundation.dart';
 import 'package:http/http.dart' as http;
 import 'package:shared_preferences/shared_preferences.dart';
@@ -33,8 +32,7 @@ class AuthProvider with ChangeNotifier {
     const defined = String.fromEnvironment('BACKEND_BASE_URL');
     if (defined.isNotEmpty) return defined;
     if (kIsWeb) return 'http://localhost:3000';
-    if (Platform.isAndroid) return 'http://10.0.2.2:3000';
-    return 'http://127.0.0.1:3000';
+    return 'http://192.168.1.22:3000';
   }
 
   // ── Restore saved session from SharedPreferences ────────────────────────────

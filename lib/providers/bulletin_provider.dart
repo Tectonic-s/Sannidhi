@@ -1,7 +1,6 @@
 import 'dart:convert';
 import 'package:flutter/material.dart';
 import 'package:shared_preferences/shared_preferences.dart';
-import '../core/services/firebase_service.dart';
 
 class BulletinItem {
   final String id;
@@ -39,13 +38,22 @@ class BulletinItem {
         'createdAt': createdAt.toIso8601String(),
       };
 
+  static IconData _resolveIcon(int? codePoint) {
+    if (codePoint == null) return Icons.campaign_rounded;
+    if (codePoint == Icons.two_wheeler_rounded.codePoint) return Icons.two_wheeler_rounded;
+    if (codePoint == Icons.auto_stories_rounded.codePoint) return Icons.auto_stories_rounded;
+    if (codePoint == Icons.restaurant_rounded.codePoint) return Icons.restaurant_rounded;
+    if (codePoint == Icons.warning_rounded.codePoint) return Icons.warning_rounded;
+    if (codePoint == Icons.directions_bus_rounded.codePoint) return Icons.directions_bus_rounded;
+    if (codePoint == Icons.water_drop_rounded.codePoint) return Icons.water_drop_rounded;
+    if (codePoint == Icons.info_rounded.codePoint) return Icons.info_rounded;
+    return Icons.campaign_rounded;
+  }
+
   factory BulletinItem.fromJson(Map<String, dynamic> json) {
     return BulletinItem(
       id: json['id'] as String? ?? UniqueKey().toString(),
-      icon: IconData(
-        json['iconCodePoint'] as int? ?? Icons.campaign_rounded.codePoint,
-        fontFamily: json['iconFontFamily'] as String?,
-      ),
+      icon: _resolveIcon(json['iconCodePoint'] as int?),
       categoryEn: json['categoryEn'] as String? ?? 'ANNOUNCEMENT',
       categoryTa: json['categoryTa'] as String? ?? 'அறிவிப்பு',
       textEn: json['textEn'] as String? ?? '',
