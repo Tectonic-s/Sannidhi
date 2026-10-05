@@ -36,11 +36,13 @@ class DefaultFirebaseOptions {
   );
 
   static const FirebaseOptions ios = FirebaseOptions(
-    apiKey: 'AIzaSyD9eAhIGCkp6WjXhClE2ivJTVYiFS0xPgk',
-    appId: '1:482970667835:android:653b196caffdf42aa2851e',
+    apiKey: 'AIzaSyClr7Q4CJpxaKI5OJEu2CRwop-Z5v-tO8s',
+    appId: '1:482970667835:ios:848ab0122c4fdb43a2851e',
     messagingSenderId: '482970667835',
     projectId: 'sannidhi-79ea7',
     storageBucket: 'sannidhi-79ea7.firebasestorage.app',
+    iosClientId:
+        '482970667835-vht8l6snubsj8fb1c0vbvk1mao31iimr.apps.googleusercontent.com',
     iosBundleId: 'com.company.sannidhi',
   );
 }
