@@ -714,10 +714,13 @@ class _GateStaffScreenState extends State<GateStaffScreen>
     final auth = context.watch<AuthProvider>();
     final staffName = auth.currentUser?.name ?? 'Gate Staff';
 
+    final isDark = AppTheme.isDark(context);
+
     return Scaffold(
-      backgroundColor: const Color(0xFFF8FAFC),
+      backgroundColor: isDark ? const Color(0xFF0F0F12) : const Color(0xFFF8FAFC),
       appBar: AppBar(
-        backgroundColor: const Color(0xFFD97706), // Staff Gold / Saffron
+        backgroundColor: isDark ? const Color(0xFF18181B) : const Color(0xFFD97706),
+        surfaceTintColor: Colors.transparent,
         elevation: 0,
         titleSpacing: 16,
         title: Column(
@@ -1534,6 +1537,7 @@ class _GateStaffScreenState extends State<GateStaffScreen>
 
   // ── 6. Shift Verification Audit Log ────────────────────────────────────────
   Widget _buildRecentScansSection(bool isTamil) {
+    final isDark = AppTheme.isDark(context);
     return Column(
       crossAxisAlignment: CrossAxisAlignment.start,
       children: [
@@ -1563,9 +1567,9 @@ class _GateStaffScreenState extends State<GateStaffScreen>
             margin: const EdgeInsets.only(bottom: 8),
             padding: const EdgeInsets.symmetric(horizontal: 14, vertical: 10),
             decoration: BoxDecoration(
-              color: Theme.of(context).cardColor,
+              color: isDark ? const Color(0xFF18181B) : Theme.of(context).cardColor,
               borderRadius: BorderRadius.circular(12),
-              border: Border.all(color: AppTheme.borderColor(context)),
+              border: Border.all(color: isDark ? const Color(0xFF27272A) : AppTheme.borderColor(context)),
             ),
             child: Row(
               children: [

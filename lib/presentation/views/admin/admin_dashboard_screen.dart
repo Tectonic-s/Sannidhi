@@ -181,7 +181,7 @@ class _AdminDashboardScreenState extends State<AdminDashboardScreen> {
                 isTamil
                     ? 'பக்தர்களுக்கு அனுப்ப வேண்டிய அவசர செய்தி அல்லது வரிசை நிலையை உள்ளிடவும்:'
                     : 'Broadcast a live announcement or queue advisory to all devotee apps:',
-                style: const TextStyle(fontSize: 12.5, color: AppTheme.textSecondary),
+                style: TextStyle(fontSize: 12.5, color: AppTheme.textSecondaryOf(context)),
               ),
               const SizedBox(height: 12),
               TextField(
@@ -270,12 +270,14 @@ class _AdminDashboardScreenState extends State<AdminDashboardScreen> {
     final insideCount = crowdData.currentVisitors > 0 ? crowdData.currentVisitors : 1420;
     const maxCapacity = 3000;
     final occupancyPercent = (insideCount / maxCapacity).clamp(0.0, 1.0);
+    final isDark = Theme.of(context).brightness == Brightness.dark;
 
     return Scaffold(
-      backgroundColor: const Color(0xFFF1F5F9),
+      backgroundColor: isDark ? const Color(0xFF0F0F12) : const Color(0xFFF1F5F9),
       appBar: AppBar(
-        backgroundColor: AppTheme.primaryColor,
+        backgroundColor: isDark ? const Color(0xFF18181B) : AppTheme.primaryColor,
         elevation: 0,
+        surfaceTintColor: Colors.transparent,
         titleSpacing: 16,
         title: Column(
           crossAxisAlignment: CrossAxisAlignment.start,
@@ -496,10 +498,10 @@ class _AdminDashboardScreenState extends State<AdminDashboardScreen> {
           ),
           Text(
             isTamil ? 'உள்ளே: $insideCount பக்தர்கள்' : 'Inside: $insideCount Devotees',
-            style: const TextStyle(
+            style: TextStyle(
               fontSize: 12.5,
               fontWeight: FontWeight.w700,
-              color: Color(0xFF1E293B),
+              color: AppTheme.textPrimaryOf(context),
             ),
           ),
           Row(
@@ -527,10 +529,11 @@ class _AdminDashboardScreenState extends State<AdminDashboardScreen> {
 
   // ── Announcement Banner ───────────────────────────────────────────────────
   Widget _buildEmergencyBanner(bool isTamil) {
+    final isDark = AppTheme.isDark(context);
     return Container(
       padding: const EdgeInsets.symmetric(horizontal: 14, vertical: 10),
       decoration: BoxDecoration(
-        color: const Color(0xFFFEF2F2),
+        color: isDark ? const Color(0xFF451A1A) : const Color(0xFFFEF2F2),
         borderRadius: BorderRadius.circular(12),
         border: Border.all(color: const Color(0xFFF87171)),
       ),
@@ -541,8 +544,8 @@ class _AdminDashboardScreenState extends State<AdminDashboardScreen> {
           Expanded(
             child: Text(
               '${isTamil ? "செயலில் உள்ள அறிவிப்பு:" : "Active Alert:"} $_activeAlertMessage',
-              style: const TextStyle(
-                color: Color(0xFF991B1B),
+              style: TextStyle(
+                color: isDark ? const Color(0xFFFECACA) : const Color(0xFF991B1B),
                 fontSize: 12,
                 fontWeight: FontWeight.w700,
               ),
@@ -731,7 +734,9 @@ class _AdminDashboardScreenState extends State<AdminDashboardScreen> {
                                 style: TextStyle(
                                   fontSize: 8.5,
                                   fontWeight: FontWeight.w700,
-                                  color: item.isCustom ? const Color(0xFF2563EB) : Colors.grey.shade700,
+                                  color: item.isCustom
+                                      ? const Color(0xFF2563EB)
+                                      : (isDark ? Colors.grey.shade400 : Colors.grey.shade700),
                                 ),
                               ),
                             ),
@@ -804,7 +809,7 @@ class _AdminDashboardScreenState extends State<AdminDashboardScreen> {
             onPressed: () async {
               Navigator.pop(ctx);
               await bulletin.removeBulletin(item.id);
-              if (mounted) {
+              if (context.mounted) {
                 ScaffoldMessenger.of(context).showSnackBar(
                   SnackBar(
                     content: Text(isTamil ? 'நேரலைச் செய்தி நீக்கப்பட்டது' : 'Live bulletin deleted'),
@@ -856,7 +861,9 @@ class _AdminDashboardScreenState extends State<AdminDashboardScreen> {
     showDialog(
       context: context,
       builder: (ctx) => StatefulBuilder(
-        builder: (ctx, setDialogState) => AlertDialog(
+        builder: (ctx, setDialogState) {
+          final isDark = Theme.of(ctx).brightness == Brightness.dark;
+          return AlertDialog(
           shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(16)),
           title: Row(
             children: [
@@ -879,7 +886,7 @@ class _AdminDashboardScreenState extends State<AdminDashboardScreen> {
                   isTamil
                       ? 'பக்தர்களின் முகப்புப் பக்கத்தில் சுழலும் நேரலை பலகையில் சேர்க்கப்படும்:'
                       : 'This bulletin will immediately rotate on the Devotee Home Screen carousel:',
-                  style: const TextStyle(fontSize: 12, color: AppTheme.textSecondary),
+                  style: TextStyle(fontSize: 12, color: AppTheme.textSecondaryOf(context)),
                 ),
                 const SizedBox(height: 12),
 
@@ -944,13 +951,13 @@ class _AdminDashboardScreenState extends State<AdminDashboardScreen> {
                       child: Container(
                         padding: const EdgeInsets.symmetric(horizontal: 8, vertical: 6),
                         decoration: BoxDecoration(
-                          color: isSel ? AppTheme.primaryColor : Colors.grey.shade100,
+                          color: isSel ? AppTheme.primaryColor : (isDark ? const Color(0xFF27272A) : Colors.grey.shade100),
                           borderRadius: BorderRadius.circular(8),
                         ),
                         child: Icon(
                           i.icon,
                           size: 18,
-                          color: isSel ? Colors.white : Colors.grey.shade700,
+                          color: isSel ? Colors.white : (isDark ? Colors.grey.shade300 : Colors.grey.shade700),
                         ),
                       ),
                     );
@@ -976,7 +983,7 @@ class _AdminDashboardScreenState extends State<AdminDashboardScreen> {
                         decoration: BoxDecoration(
                           color: c,
                           shape: BoxShape.circle,
-                          border: isSel ? Border.all(color: Colors.black, width: 2.5) : null,
+                          border: isSel ? Border.all(color: isDark ? Colors.white : Colors.black, width: 2.5) : null,
                         ),
                       ),
                     );
@@ -1012,7 +1019,7 @@ class _AdminDashboardScreenState extends State<AdminDashboardScreen> {
                 );
 
                 if (ctx.mounted) Navigator.pop(ctx);
-                if (mounted) {
+                if (context.mounted) {
                   ScaffoldMessenger.of(context).showSnackBar(
                     SnackBar(
                       content: Text(
@@ -1028,7 +1035,8 @@ class _AdminDashboardScreenState extends State<AdminDashboardScreen> {
               child: Text(isTamil ? 'சேர்' : 'Publish Bulletin'),
             ),
           ],
-        ),
+        );
+        },
       ),
     );
   }
@@ -1042,6 +1050,7 @@ class _AdminDashboardScreenState extends State<AdminDashboardScreen> {
     double percent,
     MockCrowdRepository crowd,
   ) {
+    final isDark = AppTheme.isDark(context);
     return Container(
       padding: const EdgeInsets.all(16),
       decoration: BoxDecoration(
@@ -1063,7 +1072,7 @@ class _AdminDashboardScreenState extends State<AdminDashboardScreen> {
                 children: [
                   Text(
                     isTamil ? 'கோயில் வளாக கொள்ளளவு' : 'Temple Safe Capacity',
-                    style: const TextStyle(fontSize: 12, color: Color(0xFF64748B)),
+                    style: TextStyle(fontSize: 12, color: AppTheme.textSecondaryOf(context)),
                   ),
                   const SizedBox(height: 2),
                   Text(
@@ -1113,9 +1122,9 @@ class _AdminDashboardScreenState extends State<AdminDashboardScreen> {
           Container(
             padding: const EdgeInsets.symmetric(horizontal: 10, vertical: 6),
             decoration: BoxDecoration(
-              color: const Color(0xFFF0FDF4),
+              color: isDark ? const Color(0xFF14532D).withValues(alpha: 0.25) : const Color(0xFFF0FDF4),
               borderRadius: BorderRadius.circular(8),
-              border: Border.all(color: const Color(0xFFBBF7D0)),
+              border: Border.all(color: isDark ? const Color(0xFF15803D).withValues(alpha: 0.5) : const Color(0xFFBBF7D0)),
             ),
             child: Row(
               children: [
@@ -1319,10 +1328,10 @@ class _AdminDashboardScreenState extends State<AdminDashboardScreen> {
             title,
             maxLines: 1,
             overflow: TextOverflow.ellipsis,
-            style: const TextStyle(
+            style: TextStyle(
               fontSize: 10.5,
               fontWeight: FontWeight.w600,
-              color: Color(0xFF64748B),
+              color: AppTheme.textSecondaryOf(context),
             ),
           ),
         ],
@@ -1353,7 +1362,7 @@ class _AdminDashboardScreenState extends State<AdminDashboardScreen> {
                 children: [
                   Text(
                     isTamil ? 'மொத்த தினசரி நிதி வசூல்' : 'Total Daily Collections',
-                    style: const TextStyle(fontSize: 12, color: Color(0xFF64748B)),
+                    style: TextStyle(fontSize: 12, color: AppTheme.textSecondaryOf(context)),
                   ),
                   const SizedBox(height: 2),
                   Text(
@@ -1440,7 +1449,7 @@ class _AdminDashboardScreenState extends State<AdminDashboardScreen> {
                   label,
                   maxLines: 1,
                   overflow: TextOverflow.ellipsis,
-                  style: const TextStyle(fontSize: 10.5, color: Color(0xFF64748B)),
+                  style: TextStyle(fontSize: 10.5, color: AppTheme.textSecondaryOf(context)),
                 ),
                 Text(
                   amount,
@@ -1551,7 +1560,7 @@ class _AdminDashboardScreenState extends State<AdminDashboardScreen> {
             label,
             maxLines: 1,
             overflow: TextOverflow.ellipsis,
-            style: const TextStyle(fontSize: 9.5, color: Color(0xFF64748B)),
+            style: TextStyle(fontSize: 9.5, color: AppTheme.textSecondaryOf(context)),
           ),
         ],
       ),
@@ -1601,7 +1610,7 @@ class _AdminDashboardScreenState extends State<AdminDashboardScreen> {
               ),
               Text(
                 staff,
-                style: const TextStyle(fontSize: 10.5, color: Color(0xFF64748B)),
+                style: TextStyle(fontSize: 10.5, color: AppTheme.textSecondaryOf(context)),
               ),
             ],
           ),
@@ -1685,7 +1694,7 @@ class _AdminDashboardScreenState extends State<AdminDashboardScreen> {
                     ),
                     Text(
                       '${b['id']} • Slot: ${b['slot_time'] ?? "Today"}',
-                      style: const TextStyle(fontSize: 11, color: Color(0xFF64748B)),
+                      style: TextStyle(fontSize: 11, color: AppTheme.textSecondaryOf(context)),
                     ),
                   ],
                 ),
@@ -1733,16 +1742,17 @@ class _AdminDashboardScreenState extends State<AdminDashboardScreen> {
 
   // ── 7. Festival Management Card ──────────────────────────────────────────
   Widget _buildFestivalManagementCard(bool isTamil, MockFestivalRepository repo) {
+    final isDark = AppTheme.isDark(context);
     final festivals = repo.festivals;
 
     return Container(
       decoration: BoxDecoration(
-        color: Colors.white,
+        color: isDark ? const Color(0xFF18181B) : Colors.white,
         borderRadius: BorderRadius.circular(16),
-        border: Border.all(color: const Color(0xFFE2E8F0)),
+        border: Border.all(color: isDark ? const Color(0xFF27272A) : const Color(0xFFE2E8F0)),
         boxShadow: [
           BoxShadow(
-            color: Colors.black.withValues(alpha: 0.04),
+            color: Colors.black.withValues(alpha: isDark ? 0.3 : 0.04),
             blurRadius: 10,
             offset: const Offset(0, 4),
           ),
@@ -1758,12 +1768,12 @@ class _AdminDashboardScreenState extends State<AdminDashboardScreen> {
               Container(
                 padding: const EdgeInsets.all(8),
                 decoration: BoxDecoration(
-                  color: const Color(0xFFFEF3C7),
+                  color: isDark ? const Color(0xFF78350F).withValues(alpha: 0.35) : const Color(0xFFFEF3C7),
                   borderRadius: BorderRadius.circular(10),
                 ),
-                child: const Icon(
+                child: Icon(
                   Icons.calendar_month_rounded,
-                  color: Color(0xFFD97706),
+                  color: isDark ? const Color(0xFFFBBF24) : const Color(0xFFD97706),
                   size: 20,
                 ),
               ),
@@ -1784,9 +1794,9 @@ class _AdminDashboardScreenState extends State<AdminDashboardScreen> {
                       isTamil
                           ? '${festivals.length} திருவிழாக்கள் • தேதி மாற்ற "மாற்று" அழுத்தவும்'
                           : '${festivals.length} events • Tap Edit to update dates',
-                      style: const TextStyle(
+                      style: TextStyle(
                         fontSize: 11.5,
-                        color: Color(0xFF64748B),
+                        color: AppTheme.textSecondaryOf(context),
                       ),
                     ),
                   ],
@@ -1832,7 +1842,7 @@ class _AdminDashboardScreenState extends State<AdminDashboardScreen> {
             ],
           ),
           const SizedBox(height: 14),
-          const Divider(height: 1, color: Color(0xFFF1F5F9)),
+          Divider(height: 1, color: isDark ? const Color(0xFF27272A) : const Color(0xFFF1F5F9)),
           const SizedBox(height: 10),
 
           // Festival List
@@ -1841,9 +1851,9 @@ class _AdminDashboardScreenState extends State<AdminDashboardScreen> {
               margin: const EdgeInsets.only(bottom: 8),
               padding: const EdgeInsets.symmetric(horizontal: 12, vertical: 10),
               decoration: BoxDecoration(
-                color: const Color(0xFFF8FAFC),
+                color: isDark ? const Color(0xFF141416) : const Color(0xFFF8FAFC),
                 borderRadius: BorderRadius.circular(12),
-                border: Border.all(color: const Color(0xFFE2E8F0)),
+                border: Border.all(color: isDark ? const Color(0xFF27272A) : const Color(0xFFE2E8F0)),
               ),
               child: Row(
                 children: [
@@ -1870,15 +1880,15 @@ class _AdminDashboardScreenState extends State<AdminDashboardScreen> {
                               Container(
                                 padding: const EdgeInsets.symmetric(horizontal: 6, vertical: 2),
                                 decoration: BoxDecoration(
-                                  color: const Color(0xFFFEE2E2),
+                                  color: isDark ? const Color(0xFF450A0A) : const Color(0xFFFEE2E2),
                                   borderRadius: BorderRadius.circular(6),
                                 ),
                                 child: Text(
                                   isTamil ? 'சிறப்பு' : 'Special',
-                                  style: const TextStyle(
+                                  style: TextStyle(
                                     fontSize: 9.5,
                                     fontWeight: FontWeight.w800,
-                                    color: Color(0xFFDC2626),
+                                    color: isDark ? const Color(0xFFF87171) : const Color(0xFFDC2626),
                                   ),
                                 ),
                               ),
@@ -1888,14 +1898,14 @@ class _AdminDashboardScreenState extends State<AdminDashboardScreen> {
                         const SizedBox(height: 4),
                         Row(
                           children: [
-                            const Icon(Icons.event, size: 13, color: Color(0xFF2563EB)),
+                            Icon(Icons.event, size: 13, color: isDark ? const Color(0xFF38BDF8) : const Color(0xFF2563EB)),
                             const SizedBox(width: 4),
                             Text(
                               festival.date,
-                              style: const TextStyle(
+                              style: TextStyle(
                                 fontSize: 12,
                                 fontWeight: FontWeight.w600,
-                                color: Color(0xFF2563EB),
+                                color: isDark ? const Color(0xFF38BDF8) : const Color(0xFF2563EB),
                               ),
                             ),
                           ],
@@ -1910,9 +1920,9 @@ class _AdminDashboardScreenState extends State<AdminDashboardScreen> {
                     child: Container(
                       padding: const EdgeInsets.symmetric(horizontal: 10, vertical: 6),
                       decoration: BoxDecoration(
-                        color: AppTheme.primaryColor.withValues(alpha: 0.08),
+                        color: AppTheme.primaryColor.withValues(alpha: isDark ? 0.2 : 0.08),
                         borderRadius: BorderRadius.circular(8),
-                        border: Border.all(color: AppTheme.primaryColor.withValues(alpha: 0.2)),
+                        border: Border.all(color: AppTheme.primaryColor.withValues(alpha: isDark ? 0.4 : 0.2)),
                       ),
                       child: Row(
                         mainAxisSize: MainAxisSize.min,
@@ -1979,7 +1989,7 @@ class _AdminDashboardScreenState extends State<AdminDashboardScreen> {
                   const SizedBox(height: 6),
                   Text(
                     isTamil ? festival.tamilDescription : festival.description,
-                    style: const TextStyle(fontSize: 12, color: Color(0xFF64748B)),
+                    style: TextStyle(fontSize: 12, color: AppTheme.textSecondaryOf(context)),
                   ),
                   const SizedBox(height: 16),
                   Text(

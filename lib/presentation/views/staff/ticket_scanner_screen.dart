@@ -426,10 +426,14 @@ class _TicketScannerScreenState extends State<TicketScannerScreen> {
     final l10n = AppLocalizations.of(context);
     final isTamil = l10n.currentLocale == 'ta';
 
+    final isDark = AppTheme.isDark(context);
+
     return Scaffold(
+      backgroundColor: isDark ? const Color(0xFF0F0F12) : const Color(0xFFF8FAFC),
       appBar: AppBar(
         title: Text(isTamil ? 'வாயில் சரிபார்ப்பு' : 'Gate Pass Verifier'),
-        backgroundColor: const Color(0xFFD97706),
+        backgroundColor: isDark ? const Color(0xFF18181B) : const Color(0xFFD97706),
+        surfaceTintColor: Colors.transparent,
         actions: [
           IconButton(
             icon: const Icon(Icons.refresh),
@@ -443,7 +447,9 @@ class _TicketScannerScreenState extends State<TicketScannerScreen> {
           // Header / Verifier info
           Container(
             padding: const EdgeInsets.symmetric(horizontal: 16, vertical: 12),
-            color: const Color(0xFFD97706).withValues(alpha: 0.1),
+            color: isDark
+                ? const Color(0xFFD97706).withValues(alpha: 0.15)
+                : const Color(0xFFD97706).withValues(alpha: 0.1),
             child: Row(
               children: [
                 const Icon(Icons.security, color: Color(0xFFD97706), size: 24),
@@ -454,17 +460,17 @@ class _TicketScannerScreenState extends State<TicketScannerScreen> {
                     children: [
                       Text(
                         isTamil ? 'அதிகாரப்பூர்வ சரிபார்ப்பு முறைமை' : 'Authorized Gatekeeper Check-In',
-                        style: const TextStyle(
+                        style: TextStyle(
                           fontSize: 13,
                           fontWeight: FontWeight.w700,
-                          color: Color(0xFFB45309),
+                          color: isDark ? const Color(0xFFFBBF24) : const Color(0xFFB45309),
                         ),
                       ),
                       Text(
                         isTamil
                             ? 'பாஸை சரிபார்க்க QR தரவு அல்லது டிக்கெட் குறியீட்டை உள்ளிடவும்'
                             : 'Enter QR payload or Ticket ID to check validity',
-                        style: const TextStyle(fontSize: 11, color: AppTheme.textSecondary),
+                        style: TextStyle(fontSize: 11, color: AppTheme.textSecondaryOf(context)),
                       ),
                     ],
                   ),
@@ -481,10 +487,11 @@ class _TicketScannerScreenState extends State<TicketScannerScreen> {
                 Container(
                   padding: const EdgeInsets.all(16),
                   decoration: BoxDecoration(
-                    color: Colors.white,
+                    color: isDark ? const Color(0xFF18181B) : Colors.white,
                     borderRadius: BorderRadius.circular(16),
-                    boxShadow: const [
-                      BoxShadow(color: Color(0x0F000000), blurRadius: 10, offset: Offset(0, 4)),
+                    border: Border.all(color: isDark ? const Color(0xFF27272A) : AppTheme.borderColor(context)),
+                    boxShadow: [
+                      BoxShadow(color: Colors.black.withValues(alpha: isDark ? 0.3 : 0.06), blurRadius: 10, offset: const Offset(0, 4)),
                     ],
                   ),
                   child: Column(

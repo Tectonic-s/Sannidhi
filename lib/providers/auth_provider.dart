@@ -28,17 +28,34 @@ class AuthProvider with ChangeNotifier {
   bool get isAdmin => _currentUser?.isAdmin ?? false;
   String get token => _currentUser?.token ?? '';
 
+  static String _activeBackendUrl = 'http://192.168.1.3:3000';
+
   static String get backendUrl {
     const defined = String.fromEnvironment('BACKEND_BASE_URL');
     if (defined.isNotEmpty) return defined;
     if (kIsWeb) return 'http://localhost:3000';
-    return 'http://192.168.1.22:3000';
+    return _activeBackendUrl;
+  }
+
+  Future<void> setBackendUrl(String newUrl) async {
+    final trimmed = newUrl.trim();
+    if (trimmed.isEmpty) return;
+    _activeBackendUrl = trimmed.endsWith('/') ? trimmed.substring(0, trimmed.length - 1) : trimmed;
+    try {
+      final prefs = await SharedPreferences.getInstance();
+      await prefs.setString('sannidhi_backend_url', _activeBackendUrl);
+    } catch (_) {}
+    notifyListeners();
   }
 
   // ── Restore saved session from SharedPreferences ────────────────────────────
   Future<void> restoreSession() async {
     try {
       final prefs = await SharedPreferences.getInstance();
+      final savedUrl = prefs.getString('sannidhi_backend_url');
+      if (savedUrl != null && savedUrl.isNotEmpty) {
+        _activeBackendUrl = savedUrl;
+      }
       final userJson = prefs.getString('sannidhi_user');
       final token = prefs.getString('sannidhi_token');
 
