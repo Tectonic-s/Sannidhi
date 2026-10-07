@@ -670,15 +670,21 @@ class _GateStaffScreenState extends State<GateStaffScreen>
   }
 
   void _confirmLogout(BuildContext context, bool isTamil) {
+    final isDark = AppTheme.isDark(context);
     showDialog(
       context: context,
       builder: (ctx) => AlertDialog(
+        backgroundColor: isDark ? const Color(0xFF18181B) : Colors.white,
         shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(16)),
-        title: Text(isTamil ? 'வெளியேறவா?' : 'Sign Out / Switch User?'),
+        title: Text(
+          isTamil ? 'வெளியேறவா?' : 'Sign Out / Switch User?',
+          style: TextStyle(color: AppTheme.textPrimaryOf(ctx), fontWeight: FontWeight.w800),
+        ),
         content: Text(
           isTamil
               ? 'வாயில் பணியாளர் பயன்முறையிலிருந்து வெளியேறி பக்தர் முறைக்குத் திரும்ப விரும்புகிறீர்களா?'
               : 'Do you want to sign out from Gate Staff mode and return to the Devotee view?',
+          style: TextStyle(color: AppTheme.textSecondaryOf(ctx)),
         ),
         actions: [
           TextButton(
@@ -714,11 +720,20 @@ class _GateStaffScreenState extends State<GateStaffScreen>
     final auth = context.watch<AuthProvider>();
     final staffName = auth.currentUser?.name ?? 'Gate Staff';
 
+    final isDark = AppTheme.isDark(context);
+
     return Scaffold(
-      backgroundColor: const Color(0xFFF8FAFC),
+      backgroundColor: isDark ? const Color(0xFF09090B) : const Color(0xFFF8FAFC),
       appBar: AppBar(
-        backgroundColor: const Color(0xFFD97706), // Staff Gold / Saffron
+        backgroundColor: isDark ? const Color(0xFF121215) : const Color(0xFFD97706),
+        surfaceTintColor: Colors.transparent,
         elevation: 0,
+        bottom: isDark
+            ? PreferredSize(
+                preferredSize: const Size.fromHeight(1),
+                child: Container(color: const Color(0xFF27272A), height: 1),
+              )
+            : null,
         titleSpacing: 16,
         title: Column(
           crossAxisAlignment: CrossAxisAlignment.start,
@@ -824,8 +839,8 @@ class _GateStaffScreenState extends State<GateStaffScreen>
       width: double.infinity,
       padding: const EdgeInsets.symmetric(horizontal: 16, vertical: 8),
       decoration: BoxDecoration(
-        color: isDark ? const Color(0xFF141414) : const Color(0xFFFEF3C7),
-        border: Border(bottom: BorderSide(color: isDark ? AppTheme.borderColor(context) : const Color(0xFFFDE68A))),
+        color: isDark ? const Color(0xFF18181B) : const Color(0xFFFEF3C7),
+        border: Border(bottom: BorderSide(color: isDark ? const Color(0xFF27272A) : const Color(0xFFFDE68A))),
       ),
       child: Row(
         children: [
@@ -931,9 +946,21 @@ class _GateStaffScreenState extends State<GateStaffScreen>
     return Container(
       padding: const EdgeInsets.symmetric(vertical: 10, horizontal: 10),
       decoration: BoxDecoration(
-        color: isDark ? color.withValues(alpha: 0.12) : bgColor,
-        borderRadius: BorderRadius.circular(12),
-        border: Border.all(color: color.withValues(alpha: 0.25)),
+        color: isDark ? color.withValues(alpha: 0.16) : bgColor,
+        borderRadius: BorderRadius.circular(14),
+        border: Border.all(
+          color: color.withValues(alpha: isDark ? 0.4 : 0.25),
+          width: 1.2,
+        ),
+        boxShadow: isDark
+            ? [
+                BoxShadow(
+                  color: color.withValues(alpha: 0.08),
+                  blurRadius: 8,
+                  offset: const Offset(0, 2),
+                )
+              ]
+            : null,
       ),
       child: Column(
         crossAxisAlignment: CrossAxisAlignment.start,
@@ -974,12 +1001,12 @@ class _GateStaffScreenState extends State<GateStaffScreen>
     return Container(
       padding: const EdgeInsets.all(18),
       decoration: BoxDecoration(
-        color: Theme.of(context).cardColor,
+        color: isDark ? const Color(0xFF121215) : Theme.of(context).cardColor,
         borderRadius: BorderRadius.circular(20),
-        border: Border.all(color: AppTheme.borderColor(context)),
+        border: Border.all(color: isDark ? const Color(0xFF27272A) : AppTheme.borderColor(context)),
         boxShadow: [
           BoxShadow(
-            color: Colors.black.withValues(alpha: isDark ? 0.3 : 0.06),
+            color: Colors.black.withValues(alpha: isDark ? 0.35 : 0.06),
             blurRadius: 16,
             offset: const Offset(0, 4),
           ),
@@ -1380,20 +1407,20 @@ class _GateStaffScreenState extends State<GateStaffScreen>
 
     switch (_scanState) {
       case GateScanState.success:
-        cardColor = isDark ? const Color(0xFF0A0A0A) : const Color(0xFFF0FDF4);
+        cardColor = isDark ? const Color(0xFF052E16).withValues(alpha: 0.35) : const Color(0xFFF0FDF4);
         accentColor = const Color(0xFF16A34A);
         icon = Icons.check_circle;
         title = isTamil ? 'செல்லுபடியாகும் பாஸ் • அனுமதிக்கப்பட்டது' : 'VALID PASS • ADMITTED';
         break;
       case GateScanState.alreadyUsed:
-        cardColor = isDark ? const Color(0xFF0A0A0A) : const Color(0xFFFFFBEB);
+        cardColor = isDark ? const Color(0xFF78350F).withValues(alpha: 0.35) : const Color(0xFFFFFBEB);
         accentColor = const Color(0xFFD97706);
         icon = Icons.warning_amber_rounded;
         title = isTamil ? 'ஏற்கனவே பயன்படுத்தப்பட்டது' : 'ENTRY REJECTED • ALREADY USED';
         break;
       case GateScanState.invalid:
       default:
-        cardColor = isDark ? const Color(0xFF0A0A0A) : const Color(0xFFFEF2F2);
+        cardColor = isDark ? const Color(0xFF450A0A).withValues(alpha: 0.35) : const Color(0xFFFEF2F2);
         accentColor = const Color(0xFFDC2626);
         icon = Icons.cancel;
         title = isTamil ? 'தவறான பாஸ் • அனுமதி இல்லை' : 'ENTRY REJECTED • INVALID';
@@ -1510,9 +1537,9 @@ class _GateStaffScreenState extends State<GateStaffScreen>
         children: [
           Text(
             label,
-            style: const TextStyle(
+            style: TextStyle(
               fontSize: 12,
-              color: Color(0xFF64748B),
+              color: AppTheme.textSecondaryOf(context),
               fontWeight: FontWeight.w500,
             ),
           ),
@@ -1534,6 +1561,7 @@ class _GateStaffScreenState extends State<GateStaffScreen>
 
   // ── 6. Shift Verification Audit Log ────────────────────────────────────────
   Widget _buildRecentScansSection(bool isTamil) {
+    final isDark = AppTheme.isDark(context);
     return Column(
       crossAxisAlignment: CrossAxisAlignment.start,
       children: [
@@ -1563,9 +1591,9 @@ class _GateStaffScreenState extends State<GateStaffScreen>
             margin: const EdgeInsets.only(bottom: 8),
             padding: const EdgeInsets.symmetric(horizontal: 14, vertical: 10),
             decoration: BoxDecoration(
-              color: Theme.of(context).cardColor,
+              color: isDark ? const Color(0xFF18181B) : Theme.of(context).cardColor,
               borderRadius: BorderRadius.circular(12),
-              border: Border.all(color: AppTheme.borderColor(context)),
+              border: Border.all(color: isDark ? const Color(0xFF27272A) : AppTheme.borderColor(context)),
             ),
             child: Row(
               children: [
