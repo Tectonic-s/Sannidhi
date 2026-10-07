@@ -429,11 +429,18 @@ class _TicketScannerScreenState extends State<TicketScannerScreen> {
     final isDark = AppTheme.isDark(context);
 
     return Scaffold(
-      backgroundColor: isDark ? const Color(0xFF0F0F12) : const Color(0xFFF8FAFC),
+      backgroundColor: isDark ? const Color(0xFF09090B) : const Color(0xFFF8FAFC),
       appBar: AppBar(
         title: Text(isTamil ? 'வாயில் சரிபார்ப்பு' : 'Gate Pass Verifier'),
-        backgroundColor: isDark ? const Color(0xFF18181B) : const Color(0xFFD97706),
+        backgroundColor: isDark ? const Color(0xFF121215) : const Color(0xFFD97706),
         surfaceTintColor: Colors.transparent,
+        elevation: 0,
+        bottom: isDark
+            ? PreferredSize(
+                preferredSize: const Size.fromHeight(1),
+                child: Container(color: const Color(0xFF27272A), height: 1),
+              )
+            : null,
         actions: [
           IconButton(
             icon: const Icon(Icons.refresh),
@@ -562,16 +569,16 @@ class _TicketScannerScreenState extends State<TicketScannerScreen> {
                       margin: const EdgeInsets.only(bottom: 8),
                       padding: const EdgeInsets.symmetric(horizontal: 14, vertical: 10),
                       decoration: BoxDecoration(
-                        color: Theme.of(context).cardColor,
+                        color: isDark ? const Color(0xFF18181B) : Theme.of(context).cardColor,
                         borderRadius: BorderRadius.circular(10),
                         border: Border(
                           left: BorderSide(
                             color: isValid ? AppColors.success : AppColors.error,
                             width: 4,
                           ),
-                          top: BorderSide(color: AppTheme.borderColor(context)),
-                          right: BorderSide(color: AppTheme.borderColor(context)),
-                          bottom: BorderSide(color: AppTheme.borderColor(context)),
+                          top: BorderSide(color: isDark ? const Color(0xFF27272A) : AppTheme.borderColor(context)),
+                          right: BorderSide(color: isDark ? const Color(0xFF27272A) : AppTheme.borderColor(context)),
+                          bottom: BorderSide(color: isDark ? const Color(0xFF27272A) : AppTheme.borderColor(context)),
                         ),
                       ),
                       child: Row(
@@ -625,6 +632,7 @@ class _TicketScannerScreenState extends State<TicketScannerScreen> {
   }
 
   Widget _buildResultCard(bool isTamil) {
+    final isDark = AppTheme.isDark(context);
     Color bg;
     Color border;
     IconData icon;
@@ -632,26 +640,26 @@ class _TicketScannerScreenState extends State<TicketScannerScreen> {
 
     switch (_state) {
       case _VerifyState.success:
-        bg = const Color(0xFFE8F5E9);
+        bg = isDark ? const Color(0xFF052E16).withValues(alpha: 0.35) : const Color(0xFFE8F5E9);
         border = AppColors.success;
         icon = Icons.check_circle;
         header = isTamil ? 'ஏற்றுக்கொள்ளப்பட்டது (VALID PASS)' : 'ENTRY PERMITTED - VALID PASS';
         break;
       case _VerifyState.alreadyUsed:
-        bg = const Color(0xFFFFF3E0);
+        bg = isDark ? const Color(0xFF78350F).withValues(alpha: 0.35) : const Color(0xFFFFF3E0);
         border = const Color(0xFFF57C00);
         icon = Icons.warning_amber;
         header = isTamil ? 'ஏற்கனவே பயன்படுத்தப்பட்டது' : 'ALREADY USED - DUPLICATE SCAN';
         break;
       case _VerifyState.expired:
-        bg = const Color(0xFFFEF2F2);
+        bg = isDark ? const Color(0xFF450A0A).withValues(alpha: 0.35) : const Color(0xFFFEF2F2);
         border = const Color(0xFFDC2626);
         icon = Icons.timer_off_rounded;
         header = isTamil ? 'காலாவதியான பாஸ் (EXPIRED)' : 'PASS EXPIRED - ENTRY DENIED';
         break;
       case _VerifyState.invalid:
       default:
-        bg = const Color(0xFFFFEBEE);
+        bg = isDark ? const Color(0xFF450A0A).withValues(alpha: 0.35) : const Color(0xFFFFEBEE);
         border = AppColors.error;
         icon = Icons.cancel;
         header = isTamil ? 'செல்லுபடியாகாத பாஸ்' : 'INVALID PASS - ENTRY DENIED';
