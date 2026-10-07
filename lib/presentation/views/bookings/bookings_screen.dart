@@ -1315,51 +1315,58 @@ class _BookPassesTabState extends State<_BookPassesTab> {
     ).then((result) {
       if (!mounted) return;
       if (result.result == CashfreePaymentResult.success) {
-        final provider = context.read<UserActivityProvider>();
-        final bookingId = UserActivityProvider.generateBookingId('SB');
-        final now = DateTime.now();
-        final bookingDate = _selectedBookingDate;
-        final date =
-            '${bookingDate.year}-${bookingDate.month.toString().padLeft(2, '0')}-${bookingDate.day.toString().padLeft(2, '0')}';
-        final tickets = UserActivityProvider.generateTickets(
-          bookingId: bookingId,
-          count: _shuttleSeats,
-          type: 'BUS',
-          slot: _shuttleSlot,
-          date: date,
-        );
-        final booking = ShuttleBooking(
-          bookingId: bookingId,
-          slotTime: _shuttleSlot,
-          totalFare: amount,
-          seatCount: _shuttleSeats,
-          tickets: tickets,
-          timestamp: now,
-          date: date,
-        );
-        provider.addShuttleBooking(
-          booking,
-          token: auth.token,
-          userId: user?.id,
-        );
-        showTicketCarousel(
-          context: context,
-          tickets: tickets,
-          type: TicketCarouselType.shuttle,
-          slotTime: _shuttleSlot,
-          date: date,
-          bookingId: bookingId,
-          pickupLocation: 'Adivaram Bus Stand',
-          dropLocation: 'Hilltop Sannidhi',
-        );
+        _completeShuttle(amount);
       } else if (result.result == CashfreePaymentResult.failure) {
         showCashfreePaymentFailureDialog(
           context: context,
           message: result.message,
           onRetry: _bookShuttle,
+          onSimulateComplete: () => _completeShuttle(amount),
         );
       }
     });
+  }
+
+  void _completeShuttle(double amount) {
+    final auth = context.read<AuthProvider>();
+    final user = auth.currentUser;
+    final provider = context.read<UserActivityProvider>();
+    final bookingId = UserActivityProvider.generateBookingId('SB');
+    final now = DateTime.now();
+    final bookingDate = _selectedBookingDate;
+    final date =
+        '${bookingDate.year}-${bookingDate.month.toString().padLeft(2, '0')}-${bookingDate.day.toString().padLeft(2, '0')}';
+    final tickets = UserActivityProvider.generateTickets(
+      bookingId: bookingId,
+      count: _shuttleSeats,
+      type: 'BUS',
+      slot: _shuttleSlot,
+      date: date,
+    );
+    final booking = ShuttleBooking(
+      bookingId: bookingId,
+      slotTime: _shuttleSlot,
+      totalFare: amount,
+      seatCount: _shuttleSeats,
+      tickets: tickets,
+      timestamp: now,
+      date: date,
+    );
+    provider.addShuttleBooking(
+      booking,
+      token: auth.token,
+      userId: user?.id,
+    );
+    showTicketCarousel(
+      context: context,
+      tickets: tickets,
+      type: TicketCarouselType.shuttle,
+      slotTime: _shuttleSlot,
+      date: date,
+      bookingId: bookingId,
+      pickupLocation: 'Adivaram Bus Stand',
+      dropLocation: 'Hilltop Sannidhi',
+    );
   }
 
   void _bookDarshan() {
@@ -1402,6 +1409,7 @@ class _BookPassesTabState extends State<_BookPassesTab> {
           context: context,
           message: result.message,
           onRetry: _bookDarshan,
+          onSimulateComplete: () => _saveDarshan(type),
         );
       }
     });

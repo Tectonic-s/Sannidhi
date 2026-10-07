@@ -77,6 +77,13 @@ class _TicketScannerScreenState extends State<TicketScannerScreen> {
             'devotee': fbResult.devoteeName ?? 'Devotee',
           });
         });
+        _showSuccessDialog(
+          ticketId: fbResult.ticketId ?? trimmed,
+          ticketLabel: fbResult.ticketId ?? trimmed,
+          slotTime: fbResult.slotTime ?? 'Live Slot',
+          bookingId: fbResult.bookingId ?? 'BK-CLOUD',
+          devoteeName: fbResult.devoteeName ?? 'Devotee',
+        );
         return;
       } else if (fbResult.status == 'ALREADY_USED') {
         activity.markTicketUsed(fbResult.ticketId ?? trimmed, verifiedBy: user?.name);
@@ -164,6 +171,13 @@ class _TicketScannerScreenState extends State<TicketScannerScreen> {
             'devotee': _bookingData?['devotee_name'] ?? 'Devotee',
           });
         });
+        _showSuccessDialog(
+          ticketId: verifiedId,
+          ticketLabel: t?['ticket_label'] ?? trimmed,
+          slotTime: (data['booking'] as Map<String, dynamic>?)?['slot_time'] ?? 'Live Slot',
+          bookingId: (data['booking'] as Map<String, dynamic>?)?['id'] ?? 'BK-SERVER',
+          devoteeName: _bookingData?['devotee_name'] ?? 'Devotee',
+        );
       } else if (data['status'] == 'USED') {
         final t = data['ticket'] as Map<String, dynamic>?;
         final usedId = t?['id'] ?? trimmed;
@@ -225,6 +239,170 @@ class _TicketScannerScreenState extends State<TicketScannerScreen> {
       _bookingData = null;
       _inputController.clear();
     });
+  }
+
+  void _showSuccessDialog({
+    required String ticketId,
+    required String ticketLabel,
+    required String slotTime,
+    required String bookingId,
+    required String devoteeName,
+  }) {
+    if (!mounted) return;
+    HapticFeedback.heavyImpact();
+
+    final isTamil = AppLocalizations.of(context).currentLocale == 'ta';
+
+    showDialog(
+      context: context,
+      barrierDismissible: false,
+      builder: (dialogCtx) => Dialog(
+        backgroundColor: Colors.transparent,
+        insetPadding: const EdgeInsets.symmetric(horizontal: 20, vertical: 24),
+        child: Container(
+          constraints: const BoxConstraints(maxWidth: 420),
+          decoration: BoxDecoration(
+            color: AppTheme.cardBg(dialogCtx),
+            borderRadius: BorderRadius.circular(24),
+            border: Border.all(
+              color: const Color(0xFF059669),
+              width: 2.5,
+            ),
+            boxShadow: [
+              BoxShadow(
+                color: const Color(0xFF059669).withValues(alpha: 0.35),
+                blurRadius: 28,
+                offset: const Offset(0, 10),
+                spreadRadius: 2,
+              ),
+            ],
+          ),
+          child: Column(
+            mainAxisSize: MainAxisSize.min,
+            children: [
+              Container(
+                width: double.infinity,
+                padding: const EdgeInsets.symmetric(vertical: 22, horizontal: 20),
+                decoration: const BoxDecoration(
+                  color: Color(0xFF059669),
+                  borderRadius: BorderRadius.vertical(top: Radius.circular(21)),
+                ),
+                child: Column(
+                  children: [
+                    Container(
+                      padding: const EdgeInsets.all(14),
+                      decoration: BoxDecoration(
+                        color: Colors.white.withValues(alpha: 0.22),
+                        shape: BoxShape.circle,
+                      ),
+                      child: const Icon(
+                        Icons.check_circle_rounded,
+                        size: 46,
+                        color: Colors.white,
+                      ),
+                    ),
+                    const SizedBox(height: 12),
+                    Text(
+                      isTamil ? 'பாஸ் வெற்றிகரமாக சரிபார்க்கப்பட்டது!' : 'PASS VERIFIED & VALID!',
+                      textAlign: TextAlign.center,
+                      style: const TextStyle(
+                        color: Colors.white,
+                        fontSize: 18.5,
+                        fontWeight: FontWeight.w900,
+                        letterSpacing: 0.5,
+                      ),
+                    ),
+                    const SizedBox(height: 6),
+                    Container(
+                      padding: const EdgeInsets.symmetric(horizontal: 10, vertical: 4),
+                      decoration: BoxDecoration(
+                        color: Colors.black.withValues(alpha: 0.25),
+                        borderRadius: BorderRadius.circular(20),
+                      ),
+                      child: Text(
+                        isTamil ? 'அனுமதிக்கப்பட்டது • ENTRY GRANTED' : 'ENTRY GRANTED • ADMITTED',
+                        style: const TextStyle(
+                          color: Colors.white,
+                          fontSize: 12,
+                          fontWeight: FontWeight.w800,
+                          letterSpacing: 0.8,
+                        ),
+                      ),
+                    ),
+                  ],
+                ),
+              ),
+              Padding(
+                padding: const EdgeInsets.fromLTRB(20, 18, 20, 16),
+                child: Column(
+                  children: [
+                    Text(
+                      isTamil
+                          ? 'பக்தரின் பாஸ் முறைப்படி சரிபார்க்கப்பட்டது. சந்நிதிக்குள் நுழைய அனுமதி வழங்கலாம்.'
+                          : 'Devotee pass is verified and active. Entry into temple premises is granted.',
+                      textAlign: TextAlign.center,
+                      style: TextStyle(
+                        color: AppTheme.textPrimaryOf(dialogCtx),
+                        fontSize: 13.5,
+                        fontWeight: FontWeight.w600,
+                        height: 1.45,
+                      ),
+                    ),
+                    const SizedBox(height: 16),
+                    Container(
+                      width: double.infinity,
+                      padding: const EdgeInsets.all(14),
+                      decoration: BoxDecoration(
+                        color: const Color(0xFF059669).withValues(alpha: 0.08),
+                        borderRadius: BorderRadius.circular(16),
+                        border: Border.all(
+                          color: const Color(0xFF059669).withValues(alpha: 0.25),
+                        ),
+                      ),
+                      child: Column(
+                        children: [
+                          _buildDetailRow(dialogCtx, Icons.person_rounded, isTamil ? 'பக்தர் பெயர்' : 'Devotee', devoteeName),
+                          const Divider(height: 14, thickness: 0.7),
+                          _buildDetailRow(dialogCtx, Icons.confirmation_number_rounded, isTamil ? 'பாஸ் வகை' : 'Pass Type', ticketLabel),
+                          const Divider(height: 14, thickness: 0.7),
+                          _buildDetailRow(dialogCtx, Icons.access_time_filled_rounded, isTamil ? 'அனுமதி நேரம்' : 'Slot Time', slotTime),
+                          const Divider(height: 14, thickness: 0.7),
+                          _buildDetailRow(dialogCtx, Icons.qr_code_2_rounded, isTamil ? 'பாஸ் ஐடி' : 'Ticket ID', ticketId),
+                          const Divider(height: 14, thickness: 0.7),
+                          _buildDetailRow(dialogCtx, Icons.bookmark_added_rounded, isTamil ? 'முன்பதிவு ஐடி' : 'Booking ID', bookingId),
+                        ],
+                      ),
+                    ),
+                    const SizedBox(height: 20),
+                    SizedBox(
+                      width: double.infinity,
+                      height: 50,
+                      child: ElevatedButton.icon(
+                        style: ElevatedButton.styleFrom(
+                          backgroundColor: const Color(0xFF059669),
+                          foregroundColor: Colors.white,
+                          elevation: 3,
+                          shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(14)),
+                        ),
+                        onPressed: () {
+                          Navigator.of(dialogCtx).pop();
+                          _reset();
+                        },
+                        icon: const Icon(Icons.qr_code_scanner_rounded, size: 22),
+                        label: Text(
+                          isTamil ? 'அடுத்த பாஸை சரிபார்' : 'Verify Next Pass',
+                          style: const TextStyle(fontSize: 15.5, fontWeight: FontWeight.w800),
+                        ),
+                      ),
+                    ),
+                  ],
+                ),
+              ),
+            ],
+          ),
+        ),
+      ),
+    );
   }
 
   void _showAlreadyScannedDialog({
@@ -418,6 +596,37 @@ class _TicketScannerScreenState extends State<TicketScannerScreen> {
           ),
         ),
       ),
+    );
+  }
+
+  Widget _buildDetailRow(BuildContext ctx, IconData icon, String label, String value) {
+    return Row(
+      children: [
+        Icon(icon, size: 16, color: AppTheme.textSecondaryOf(ctx)),
+        const SizedBox(width: 8),
+        Text(
+          label,
+          style: TextStyle(
+            fontSize: 12.5,
+            color: AppTheme.textSecondaryOf(ctx),
+            fontWeight: FontWeight.w600,
+          ),
+        ),
+        const Spacer(),
+        Flexible(
+          child: Text(
+            value,
+            textAlign: TextAlign.right,
+            style: TextStyle(
+              fontSize: 13,
+              fontWeight: FontWeight.w700,
+              color: AppTheme.textPrimaryOf(ctx),
+            ),
+            maxLines: 1,
+            overflow: TextOverflow.ellipsis,
+          ),
+        ),
+      ],
     );
   }
 

@@ -1203,7 +1203,7 @@ class _AiAssistantDialogState extends State<AiAssistantDialog> {
       child: ListView.separated(
         scrollDirection: Axis.horizontal,
         itemCount: suggestions.length,
-        separatorBuilder: (_, __) => const SizedBox(width: 6),
+        separatorBuilder: (context, index) => const SizedBox(width: 6),
         itemBuilder: (ctx, i) {
           final item = suggestions[i];
           return ActionChip(

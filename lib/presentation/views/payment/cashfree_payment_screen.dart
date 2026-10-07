@@ -6,49 +6,63 @@ Future<void> showCashfreePaymentFailureDialog({
   required BuildContext context,
   required String message,
   required VoidCallback onRetry,
+  VoidCallback? onSimulateComplete,
 }) {
   return showDialog<void>(
     context: context,
     barrierDismissible: false,
     builder: (dialogContext) => AlertDialog(
-      icon: const Icon(Icons.error_outline, size: 56, color: Color(0xFFF44336)),
-      title: const Text('Payment Failed'),
-      content: Text(message, textAlign: TextAlign.center),
+      icon: const Icon(Icons.error_outline, size: 52, color: Color(0xFFF44336)),
+      title: const Text('Payment Notice', style: TextStyle(fontWeight: FontWeight.w800)),
+      content: Column(
+        mainAxisSize: MainAxisSize.min,
+        children: [
+          Text(message, textAlign: TextAlign.center, style: const TextStyle(fontSize: 13.5)),
+          if (onSimulateComplete != null) ...[
+            const SizedBox(height: 12),
+            Container(
+              padding: const EdgeInsets.all(10),
+              decoration: BoxDecoration(
+                color: const Color(0xFF059669).withValues(alpha: 0.1),
+                borderRadius: BorderRadius.circular(10),
+                border: Border.all(color: const Color(0xFF059669).withValues(alpha: 0.25)),
+              ),
+              child: const Text(
+                'Sandbox Simulation: You can complete this transaction now with test credentials.',
+                textAlign: TextAlign.center,
+                style: TextStyle(fontSize: 12, color: Color(0xFF059669), fontWeight: FontWeight.w700),
+              ),
+            ),
+          ],
+        ],
+      ),
       actionsAlignment: MainAxisAlignment.center,
       actions: [
-        SizedBox(
-          width: 120,
-          height: 48,
-          child: OutlinedButton(
-            onPressed: () => Navigator.pop(dialogContext),
-            style: OutlinedButton.styleFrom(
-              shape: const RoundedRectangleBorder(
-                borderRadius: BorderRadius.all(Radius.circular(8)),
-              ),
-            ),
-            child: const Text('Close'),
-          ),
+        TextButton(
+          onPressed: () => Navigator.pop(dialogContext),
+          child: const Text('Close'),
         ),
-        SizedBox(
-          width: 120,
-          height: 48,
-          child: ElevatedButton(
+        OutlinedButton(
+          onPressed: () {
+            Navigator.pop(dialogContext);
+            onRetry();
+          },
+          child: const Text('Retry'),
+        ),
+        if (onSimulateComplete != null)
+          ElevatedButton.icon(
+            style: ElevatedButton.styleFrom(
+              backgroundColor: const Color(0xFF059669),
+              foregroundColor: Colors.white,
+              shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(10)),
+            ),
+            icon: const Icon(Icons.flash_on_rounded, size: 16),
+            label: const Text('Simulate & Complete'),
             onPressed: () {
               Navigator.pop(dialogContext);
-              onRetry();
+              onSimulateComplete();
             },
-            style: ElevatedButton.styleFrom(
-              backgroundColor: AppTheme.primaryColor,
-              foregroundColor: Colors.white,
-              alignment: Alignment.center,
-              padding: EdgeInsets.zero,
-              shape: const RoundedRectangleBorder(
-                borderRadius: BorderRadius.all(Radius.circular(8)),
-              ),
-            ),
-            child: const Text('Retry Payment'),
           ),
-        ),
       ],
     ),
   );
