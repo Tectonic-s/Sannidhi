@@ -213,9 +213,17 @@ class _MainNavigationScreenState extends State<MainNavigationScreen> {
     final isDark = Theme.of(context).brightness == Brightness.dark;
     final bottomInset = MediaQuery.of(context).padding.bottom;
 
-    return Scaffold(
-      extendBody: true,
-      body: IndexedStack(index: _currentIndex, children: screens),
+    return PopScope(
+      canPop: _currentIndex == 0,
+      onPopInvokedWithResult: (didPop, _) {
+        if (didPop) return;
+        if (_currentIndex != 0) {
+          setState(() => _currentIndex = 0);
+        }
+      },
+      child: Scaffold(
+        extendBody: true,
+        body: IndexedStack(index: _currentIndex, children: screens),
       floatingActionButton: _currentIndex == 0
           ? Padding(
               padding: const EdgeInsets.only(bottom: 6),
@@ -331,8 +339,9 @@ class _MainNavigationScreenState extends State<MainNavigationScreen> {
           ),
         ),
       ),
-    );
-  }
+    ),
+  );
+}
 
   Widget _navItem({
     required int index,

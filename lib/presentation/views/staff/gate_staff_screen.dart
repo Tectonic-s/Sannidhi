@@ -43,6 +43,9 @@ class _GateStaffScreenState extends State<GateStaffScreen>
   int _activePending = 52;
   int _duplicatesBlocked = 3;
   bool _isDialogOpen = false;
+  bool _isProcessingScan = false;
+  String? _lastScannedCode;
+  DateTime? _lastScannedAt;
 
   // Recent scans audit log
   final List<Map<String, dynamic>> _scanHistory = [
@@ -96,6 +99,11 @@ class _GateStaffScreenState extends State<GateStaffScreen>
   Future<void> _verifyTicket(String rawCode) async {
     final code = rawCode.trim();
     if (code.isEmpty) return;
+
+    _isProcessingScan = true;
+    try {
+      _cameraController?.pause();
+    } catch (_) {}
 
     HapticFeedback.mediumImpact();
     setState(() {
@@ -344,6 +352,16 @@ class _GateStaffScreenState extends State<GateStaffScreen>
         'gate': 'Gate 1 (East Gopuram)',
       });
     });
+
+    // Prominently display Success Confirmation Dialog to staff
+    _showSuccessDialog(
+      ticketId: ticketId,
+      ticketLabel: ticketLabel,
+      slotTime: slotTime,
+      bookingId: bookingId,
+      devoteeName: devoteeName,
+      message: message,
+    );
   }
 
   void _handleAlreadyUsed({
@@ -390,6 +408,226 @@ class _GateStaffScreenState extends State<GateStaffScreen>
       devoteeName: devoteeName,
       message: message,
     );
+  }
+
+  void _showSuccessDialog({
+    required String ticketId,
+    required String ticketLabel,
+    required String slotTime,
+    required String bookingId,
+    required String devoteeName,
+    required String? message,
+  }) {
+    if (_isDialogOpen || !mounted) return;
+    _isDialogOpen = true;
+    try {
+      _cameraController?.pause();
+    } catch (_) {}
+
+    HapticFeedback.heavyImpact();
+
+    final isTamil = AppLocalizations.of(context).currentLocale == 'ta';
+
+    showDialog(
+      context: context,
+      barrierDismissible: false,
+      builder: (dialogCtx) => PopScope(
+        canPop: false,
+        onPopInvokedWithResult: (didPop, _) {
+          if (didPop) return;
+          _isDialogOpen = false;
+          Navigator.of(dialogCtx).pop();
+          _resetScanner();
+        },
+        child: Dialog(
+          backgroundColor: Colors.transparent,
+          insetPadding: const EdgeInsets.symmetric(horizontal: 20, vertical: 24),
+          child: Container(
+            constraints: const BoxConstraints(maxWidth: 420),
+            decoration: BoxDecoration(
+              color: AppTheme.cardBg(dialogCtx),
+              borderRadius: BorderRadius.circular(24),
+              border: Border.all(
+                color: const Color(0xFF059669),
+                width: 2.5,
+              ),
+              boxShadow: [
+                BoxShadow(
+                  color: const Color(0xFF059669).withValues(alpha: 0.35),
+                  blurRadius: 28,
+                  offset: const Offset(0, 10),
+                  spreadRadius: 2,
+                ),
+              ],
+            ),
+            child: Column(
+              mainAxisSize: MainAxisSize.min,
+              children: [
+                // 1. Green Success Header Banner
+                Container(
+                  width: double.infinity,
+                  padding: const EdgeInsets.symmetric(vertical: 22, horizontal: 20),
+                  decoration: const BoxDecoration(
+                    color: Color(0xFF059669),
+                    borderRadius: BorderRadius.vertical(top: Radius.circular(21)),
+                  ),
+                  child: Column(
+                    children: [
+                      Container(
+                        padding: const EdgeInsets.all(14),
+                        decoration: BoxDecoration(
+                          color: Colors.white.withValues(alpha: 0.22),
+                          shape: BoxShape.circle,
+                        ),
+                        child: const Icon(
+                          Icons.check_circle_rounded,
+                          size: 48,
+                          color: Colors.white,
+                        ),
+                      ),
+                      const SizedBox(height: 12),
+                      Text(
+                        isTamil ? 'பாஸ் வெற்றிகரமாக சரிபார்க்கப்பட்டது!' : 'PASS VERIFIED & VALID!',
+                        textAlign: TextAlign.center,
+                        style: const TextStyle(
+                          color: Colors.white,
+                          fontSize: 18.5,
+                          fontWeight: FontWeight.w900,
+                          letterSpacing: 0.5,
+                        ),
+                      ),
+                      const SizedBox(height: 6),
+                      Container(
+                        padding: const EdgeInsets.symmetric(horizontal: 10, vertical: 4),
+                        decoration: BoxDecoration(
+                          color: Colors.black.withValues(alpha: 0.25),
+                          borderRadius: BorderRadius.circular(20),
+                        ),
+                        child: Text(
+                          isTamil ? 'அனுமதிக்கப்பட்டது • ENTRY GRANTED' : 'ENTRY GRANTED • ADMITTED',
+                          style: const TextStyle(
+                            color: Colors.white,
+                            fontSize: 12,
+                            fontWeight: FontWeight.w800,
+                            letterSpacing: 0.8,
+                          ),
+                        ),
+                      ),
+                    ],
+                  ),
+                ),
+
+                // 2. Pass Details Card & Action
+                Padding(
+                  padding: const EdgeInsets.fromLTRB(20, 18, 20, 16),
+                  child: Column(
+                    children: [
+                      Text(
+                        isTamil
+                            ? 'பக்தரின் பாஸ் முறைப்படி சரிபார்க்கப்பட்டது. சந்நிதிக்குள் நுழைய அனுமதி வழங்கலாம்.'
+                            : 'Devotee pass is genuine and active. Entry into temple premises is granted.',
+                        textAlign: TextAlign.center,
+                        style: TextStyle(
+                          color: AppTheme.textPrimaryOf(dialogCtx),
+                          fontSize: 13.5,
+                          fontWeight: FontWeight.w600,
+                          height: 1.45,
+                        ),
+                      ),
+                      const SizedBox(height: 16),
+
+                      // Pass Details Container
+                      Container(
+                        width: double.infinity,
+                        padding: const EdgeInsets.all(14),
+                        decoration: BoxDecoration(
+                          color: const Color(0xFF059669).withValues(alpha: 0.08),
+                          borderRadius: BorderRadius.circular(16),
+                          border: Border.all(
+                            color: const Color(0xFF059669).withValues(alpha: 0.25),
+                          ),
+                        ),
+                        child: Column(
+                          children: [
+                            _buildDialogRow(
+                              dialogCtx,
+                              icon: Icons.person_rounded,
+                              label: isTamil ? 'பக்தர் பெயர்' : 'Devotee',
+                              value: devoteeName,
+                            ),
+                            const Divider(height: 14, thickness: 0.7),
+                            _buildDialogRow(
+                              dialogCtx,
+                              icon: Icons.confirmation_number_rounded,
+                              label: isTamil ? 'பாஸ் வகை' : 'Pass Type',
+                              value: ticketLabel,
+                            ),
+                            const Divider(height: 14, thickness: 0.7),
+                            _buildDialogRow(
+                              dialogCtx,
+                              icon: Icons.access_time_filled_rounded,
+                              label: isTamil ? 'அனுமதி நேரம்' : 'Time Slot',
+                              value: slotTime,
+                            ),
+                            const Divider(height: 14, thickness: 0.7),
+                            _buildDialogRow(
+                              dialogCtx,
+                              icon: Icons.qr_code_2_rounded,
+                              label: isTamil ? 'பாஸ் ஐடி' : 'Ticket ID',
+                              value: ticketId,
+                            ),
+                            const Divider(height: 14, thickness: 0.7),
+                            _buildDialogRow(
+                              dialogCtx,
+                              icon: Icons.meeting_room_rounded,
+                              label: isTamil ? 'வாயில்' : 'Entry Gate',
+                              value: 'Gate 1 (East Gopuram)',
+                            ),
+                          ],
+                        ),
+                      ),
+                      const SizedBox(height: 20),
+
+                      // Big Green "Scan Next Pass" button
+                      SizedBox(
+                        width: double.infinity,
+                        height: 52,
+                        child: ElevatedButton.icon(
+                          style: ElevatedButton.styleFrom(
+                            backgroundColor: const Color(0xFF059669),
+                            foregroundColor: Colors.white,
+                            elevation: 3,
+                            shape: RoundedRectangleBorder(
+                              borderRadius: BorderRadius.circular(14),
+                            ),
+                          ),
+                          onPressed: () {
+                            _isDialogOpen = false;
+                            Navigator.of(dialogCtx).pop();
+                            _resetScanner();
+                          },
+                          icon: const Icon(Icons.qr_code_scanner_rounded, size: 22),
+                          label: Text(
+                            isTamil ? 'அடுத்த பாஸை ஸ்கேன் செய்' : 'Scan Next Pass',
+                            style: const TextStyle(
+                              fontSize: 15.5,
+                              fontWeight: FontWeight.w800,
+                            ),
+                          ),
+                        ),
+                      ),
+                    ],
+                  ),
+                ),
+              ],
+            ),
+          ),
+        ),
+      ),
+    ).then((_) {
+      _isDialogOpen = false;
+      _resetScanner();
+    });
   }
 
   void _showAlreadyScannedDialog({
@@ -642,15 +880,24 @@ class _GateStaffScreenState extends State<GateStaffScreen>
 
   void _handleInvalid(String message) {
     HapticFeedback.vibrate();
+    _isProcessingScan = false;
     setState(() {
       _scanState = GateScanState.invalid;
       _statusMessage = message;
       _verifiedTicket = null;
       _verifiedBooking = null;
     });
+    Future.delayed(const Duration(seconds: 3), () {
+      if (mounted && _scanState == GateScanState.invalid && !_isDialogOpen) {
+        _resetScanner();
+      }
+    });
   }
 
   void _resetScanner() {
+    _isProcessingScan = false;
+    _isDialogOpen = false;
+    _lastScannedCode = null;
     setState(() {
       _scanState = GateScanState.idle;
       _statusMessage = null;
@@ -658,6 +905,9 @@ class _GateStaffScreenState extends State<GateStaffScreen>
       _verifiedBooking = null;
       _codeController.clear();
     });
+    try {
+      _cameraController?.start();
+    } catch (_) {}
     _focusNode.requestFocus();
   }
 
@@ -1041,12 +1291,21 @@ class _GateStaffScreenState extends State<GateStaffScreen>
                     MobileScanner(
                       controller: _cameraController,
                       onDetect: (capture) {
-                        if (_scanState == GateScanState.scanning || _isDialogOpen) return;
+                        if (_isProcessingScan || _isDialogOpen || _scanState != GateScanState.idle) return;
                         final barcodes = capture.barcodes;
                         for (final b in barcodes) {
                           final val = b.rawValue;
                           if (val != null && val.trim().isNotEmpty) {
-                            _verifyTicket(val.trim());
+                            final trimmed = val.trim();
+                            final now = DateTime.now();
+                            if (_lastScannedCode == trimmed &&
+                                _lastScannedAt != null &&
+                                now.difference(_lastScannedAt!) < const Duration(seconds: 4)) {
+                              return;
+                            }
+                            _lastScannedCode = trimmed;
+                            _lastScannedAt = now;
+                            _verifyTicket(trimmed);
                             break;
                           }
                         }

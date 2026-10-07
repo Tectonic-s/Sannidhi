@@ -175,43 +175,55 @@ class _DonationScreenState extends State<DonationScreen> {
     ).then((result) {
       if (!mounted) return;
       if (result.result == CashfreePaymentResult.success) {
-        final now = DateTime.now();
-        final txnId = result.orderId.isNotEmpty
-            ? result.orderId
-            : 'TXN${now.millisecondsSinceEpoch.toString().substring(6)}';
-        final qr = 'SANNIDHI|DONATION|$txnId|$causeLabel|₹$parsed';
-        final receipt = DonationReceiptModel(
-          transactionId: txnId,
-          cause: causeLabel,
-          amount: parsed,
-          timestamp: now,
-          qrPayload: qr,
-          ref80g: '80G/MRD/$txnId',
-        );
-        context.read<UserActivityProvider>().addDonation(
-          receipt,
-          token: auth.token,
-          userId: user?.id,
-        );
-
-        showModalBottomSheet(
-          context: context,
-          isScrollControlled: true,
-          backgroundColor: Colors.transparent,
-          builder: (_) => _ReceiptSheet(
-            receipt: receipt,
-            causeIcon: cause.icon,
-            causeColor: cause.color,
-          ),
-        );
+        _completeDonation(parsed, cause, causeLabel, result.orderId);
       } else if (result.result == CashfreePaymentResult.failure) {
         showCashfreePaymentFailureDialog(
           context: context,
           message: result.message,
           onRetry: _proceedToPay,
+          onSimulateComplete: () => _completeDonation(
+            parsed,
+            cause,
+            causeLabel,
+            'SANNIDHI_DON_${DateTime.now().millisecondsSinceEpoch}',
+          ),
         );
       }
     });
+  }
+
+  void _completeDonation(int parsed, _Cause cause, String causeLabel, String? orderId) {
+    final auth = context.read<AuthProvider>();
+    final user = auth.currentUser;
+    final now = DateTime.now();
+    final txnId = (orderId != null && orderId.isNotEmpty)
+        ? orderId
+        : 'TXN${now.millisecondsSinceEpoch.toString().substring(6)}';
+    final qr = 'SANNIDHI|DONATION|$txnId|$causeLabel|₹$parsed';
+    final receipt = DonationReceiptModel(
+      transactionId: txnId,
+      cause: causeLabel,
+      amount: parsed,
+      timestamp: now,
+      qrPayload: qr,
+      ref80g: '80G/MRD/$txnId',
+    );
+    context.read<UserActivityProvider>().addDonation(
+      receipt,
+      token: auth.token,
+      userId: user?.id,
+    );
+
+    showModalBottomSheet(
+      context: context,
+      isScrollControlled: true,
+      backgroundColor: Colors.transparent,
+      builder: (_) => _ReceiptSheet(
+        receipt: receipt,
+        causeIcon: cause.icon,
+        causeColor: cause.color,
+      ),
+    );
   }
 }
 
