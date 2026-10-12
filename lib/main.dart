@@ -14,6 +14,7 @@ import 'presentation/views/ai_assistant_dialog.dart';
 import 'presentation/views/bookings/bookings_screen.dart';
 import 'presentation/views/festivals/festivals_screen.dart';
 import 'presentation/views/home/home_screen.dart';
+import 'presentation/views/home/family_visitor_prompt_bottom_sheet.dart';
 import 'presentation/views/more/more_screen.dart';
 import 'presentation/views/splash/splash_screen.dart';
 import 'core/services/firebase_service.dart';
@@ -185,6 +186,30 @@ class MainNavigationScreen extends StatefulWidget {
 class _MainNavigationScreenState extends State<MainNavigationScreen> {
   int _currentIndex = 0;
   int _bookingSubPage = 0;
+
+  @override
+  void initState() {
+    super.initState();
+    GeofenceService.instance.pendingFamilyPromptNotifier.addListener(_checkPendingFamilyPrompt);
+    WidgetsBinding.instance.addPostFrameCallback((_) {
+      _checkPendingFamilyPrompt();
+    });
+  }
+
+  @override
+  void dispose() {
+    GeofenceService.instance.pendingFamilyPromptNotifier.removeListener(_checkPendingFamilyPrompt);
+    super.dispose();
+  }
+
+  void _checkPendingFamilyPrompt() {
+    if (!mounted) return;
+    if (GeofenceService.instance.pendingFamilyPromptNotifier.value) {
+      final l10n = AppLocalizations.of(context);
+      final isTamil = l10n.currentLocale == 'ta';
+      FamilyVisitorPromptBottomSheet.show(context, isTamil: isTamil);
+    }
+  }
 
   @override
   Widget build(BuildContext context) {

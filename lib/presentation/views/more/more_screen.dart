@@ -4,6 +4,7 @@ import 'package:url_launcher/url_launcher.dart';
 
 import '../../../core/constants/app_theme.dart';
 import '../../../core/l10n/app_localizations.dart';
+import '../../../core/services/geofence_service.dart';
 import '../../../core/widgets/custom_app_bar.dart';
 import '../../../core/widgets/devotee_avatar.dart';
 import '../../../core/widgets/micro_animations.dart';
@@ -14,6 +15,7 @@ import '../../../providers/user_activity_provider.dart';
 import '../account/account_screen.dart';
 import '../donation/donation_screen.dart';
 import '../facility/facility_locator_screen.dart';
+import '../home/family_visitor_prompt_bottom_sheet.dart';
 import '../services/services_screen.dart';
 
 class MoreScreen extends StatelessWidget {
@@ -116,6 +118,8 @@ class MoreScreen extends StatelessWidget {
           ),
           const SizedBox(height: 10),
           _buildAccessibilityTile(context, access, isTamil),
+          const SizedBox(height: 10),
+          _buildFamilySizeConfigTile(context, isTamil),
           const SizedBox(height: 10),
           _buildBackendConfigTile(context, isTamil),
           const SizedBox(height: 20),
@@ -1018,6 +1022,24 @@ class MoreScreen extends StatelessWidget {
           ),
         ],
       ),
+    );
+  }
+
+  Widget _buildFamilySizeConfigTile(BuildContext context, bool isTamil) {
+    final geofence = GeofenceService.instance;
+    final groupCount = geofence.currentSessionDevoteeCount;
+
+    return _buildActionTile(
+      context: context,
+      icon: Icons.family_restroom_rounded,
+      color: const Color(0xFFD97706),
+      title: isTamil
+          ? 'குடும்ப உறுப்பினர் எண்ணிக்கை (தரிசனம்)'
+          : 'Family Pilgrimage Size (3-Tier Footfall)',
+      subtitle: isTamil
+          ? 'தற்போது: $groupCount பக்தர்கள் (குழந்தைகள் உட்பட • மாற்ற தட்டவும்)'
+          : 'Current: $groupCount devotees (Kids & family • Tap to customize)',
+      onTap: () => FamilyVisitorPromptBottomSheet.show(context, isTamil: isTamil),
     );
   }
 }

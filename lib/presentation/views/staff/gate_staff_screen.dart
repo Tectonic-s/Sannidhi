@@ -10,6 +10,7 @@ import '../../../core/l10n/app_localizations.dart';
 import '../../../core/services/firebase_service.dart';
 import '../../../core/utils/booking_utils.dart';
 import '../../../data/models/activity_models.dart';
+import '../../../data/repositories/mock_crowd_repository.dart';
 import '../../../providers/auth_provider.dart';
 import '../../../providers/user_activity_provider.dart';
 import '../auth/login_screen.dart';
@@ -352,6 +353,10 @@ class _GateStaffScreenState extends State<GateStaffScreen>
         'gate': 'Gate 1 (East Gopuram)',
       });
     });
+
+    try {
+      context.read<MockCrowdRepository>().recordTicketVerification(ticketId, ticketCount: 1);
+    } catch (_) {}
 
     // Prominently display Success Confirmation Dialog to staff
     _showSuccessDialog(
@@ -1047,6 +1052,10 @@ class _GateStaffScreenState extends State<GateStaffScreen>
                 children: [
                   // Live Gate Throughput Counters
                   _buildGateCounters(isTamil),
+                  const SizedBox(height: 10),
+
+                  // Walk-in Family Quick Counter (Tier 2/3 Reconciled)
+                  _buildWalkinFamilyQuickBar(isTamil),
                   const SizedBox(height: 16),
 
                   // Scanner Viewfinder Card
@@ -1182,6 +1191,83 @@ class _GateStaffScreenState extends State<GateStaffScreen>
           ),
         ),
       ],
+    );
+  }
+
+  Widget _buildWalkinFamilyQuickBar(bool isTamil) {
+    final isDark = AppTheme.isDark(context);
+    return Container(
+      padding: const EdgeInsets.symmetric(horizontal: 12, vertical: 8),
+      decoration: BoxDecoration(
+        color: isDark ? const Color(0xFF1E293B).withValues(alpha: 0.5) : const Color(0xFFF8FAFC),
+        borderRadius: BorderRadius.circular(12),
+        border: Border.all(
+          color: isDark ? const Color(0xFF334155) : const Color(0xFFE2E8F0),
+        ),
+      ),
+      child: Row(
+        children: [
+          const Icon(Icons.family_restroom_rounded, size: 16, color: Color(0xFFD97706)),
+          const SizedBox(width: 6),
+          Expanded(
+            child: Text(
+              isTamil ? 'நேரடி குடும்ப யாத்ரிகர் பதிவு:' : 'Walk-in Family & Kids Counter:',
+              style: TextStyle(
+                fontSize: 11,
+                fontWeight: FontWeight.w700,
+                color: AppTheme.textPrimaryOf(context),
+              ),
+            ),
+          ),
+          Wrap(
+            spacing: 5,
+            children: [
+              _walkinQuickBtn('+1', 1),
+              _walkinQuickBtn('+2', 2),
+              _walkinQuickBtn('+3', 3),
+              _walkinQuickBtn('+5', 5),
+            ],
+          ),
+        ],
+      ),
+    );
+  }
+
+  Widget _walkinQuickBtn(String label, int count) {
+    return InkWell(
+      onTap: () {
+        HapticFeedback.mediumImpact();
+        setState(() => _admittedToday += count);
+        context.read<MockCrowdRepository>().recordWalkinFamilyQuickCount(count);
+        ScaffoldMessenger.of(context).showSnackBar(
+          SnackBar(
+            behavior: SnackBarBehavior.floating,
+            duration: const Duration(seconds: 1),
+            backgroundColor: const Color(0xFF065F46),
+            content: Text(
+              '+$count Walk-in devotees registered to central crowd tally',
+              style: const TextStyle(fontWeight: FontWeight.w700, fontSize: 12),
+            ),
+          ),
+        );
+      },
+      borderRadius: BorderRadius.circular(6),
+      child: Container(
+        padding: const EdgeInsets.symmetric(horizontal: 7, vertical: 3),
+        decoration: BoxDecoration(
+          color: const Color(0xFFD97706).withValues(alpha: 0.15),
+          borderRadius: BorderRadius.circular(6),
+          border: Border.all(color: const Color(0xFFD97706).withValues(alpha: 0.5)),
+        ),
+        child: Text(
+          label,
+          style: const TextStyle(
+            fontSize: 11,
+            fontWeight: FontWeight.w800,
+            color: Color(0xFFD97706),
+          ),
+        ),
+      ),
     );
   }
 

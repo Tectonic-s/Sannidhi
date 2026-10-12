@@ -1165,6 +1165,10 @@ class _AdminDashboardScreenState extends State<AdminDashboardScreen> {
               ],
             ),
           ),
+          const SizedBox(height: 12),
+
+          // ── 3-Tier Footfall Telemetry & Demographic Multiplier Section ──
+          _buildThreeTierFootfallCard(context, isDark, isTamil, crowd),
           const SizedBox(height: 14),
 
           // Wait Times
@@ -1212,6 +1216,256 @@ class _AdminDashboardScreenState extends State<AdminDashboardScreen> {
           _zoneRow('Outer Prakaram (Circumambulation)', 0.35, '350 / 1000', const Color(0xFF10B981)),
           _zoneRow('Foothill Shuttle Boarding Terminal', 0.12, '60 / 500', const Color(0xFF10B981)),
         ],
+      ),
+    );
+  }
+
+  Widget _buildThreeTierFootfallCard(
+    BuildContext context,
+    bool isDark,
+    bool isTamil,
+    MockCrowdRepository crowd,
+  ) {
+    final mode = crowd.multiplierMode;
+    final multiplier = crowd.demographicMultiplier;
+
+    return Container(
+      padding: const EdgeInsets.all(12),
+      decoration: BoxDecoration(
+        color: isDark ? const Color(0xFF1E293B).withValues(alpha: 0.4) : const Color(0xFFF8FAFC),
+        borderRadius: BorderRadius.circular(14),
+        border: Border.all(
+          color: isDark ? const Color(0xFF334155) : const Color(0xFFE2E8F0),
+        ),
+      ),
+      child: Column(
+        crossAxisAlignment: CrossAxisAlignment.start,
+        children: [
+          // Header row with multiplier badge
+          Row(
+            mainAxisAlignment: MainAxisAlignment.spaceBetween,
+            children: [
+              Row(
+                children: [
+                  const Icon(Icons.analytics_rounded, size: 16, color: Color(0xFFD97706)),
+                  const SizedBox(width: 6),
+                  Text(
+                    isTamil ? '3-நிலை குடும்ப & யாத்ரிகர் பகுப்பாய்வு' : '3-Tier Footfall & Family Estimation',
+                    style: TextStyle(
+                      fontSize: 12,
+                      fontWeight: FontWeight.w800,
+                      color: AppTheme.textPrimaryOf(context),
+                    ),
+                  ),
+                ],
+              ),
+              Container(
+                padding: const EdgeInsets.symmetric(horizontal: 7, vertical: 2.5),
+                decoration: BoxDecoration(
+                  color: const Color(0xFFD97706).withValues(alpha: 0.15),
+                  borderRadius: BorderRadius.circular(6),
+                  border: Border.all(color: const Color(0xFFD97706).withValues(alpha: 0.4)),
+                ),
+                child: Text(
+                  'k = ${multiplier.toStringAsFixed(1)}x',
+                  style: const TextStyle(
+                    fontSize: 11,
+                    fontWeight: FontWeight.w900,
+                    color: Color(0xFFD97706),
+                  ),
+                ),
+              ),
+            ],
+          ),
+          const SizedBox(height: 10),
+
+          // 3 Metric Cards for Tier 1, Tier 2, Tier 3
+          Row(
+            children: [
+              // Tier 1: Bookings Linked
+              Expanded(
+                child: _tierColumn(
+                  context: context,
+                  isDark: isDark,
+                  tierLabel: 'Tier 1',
+                  count: '${crowd.tier1BookingLinkedCount}',
+                  subtitle: isTamil ? 'பாஸ் இணைப்பு' : 'Active Passes',
+                  color: const Color(0xFF10B981),
+                  icon: Icons.confirmation_number_outlined,
+                ),
+              ),
+              const SizedBox(width: 6),
+
+              // Tier 2: Devotee & Family Prompts
+              Expanded(
+                child: _tierColumn(
+                  context: context,
+                  isDark: isDark,
+                  tierLabel: 'Tier 2',
+                  count: '${crowd.tier2DeclaredCount}',
+                  subtitle: isTamil ? 'குடும்ப பதிவு' : 'Family Prompts',
+                  color: const Color(0xFFD97706),
+                  icon: Icons.family_restroom_rounded,
+                ),
+              ),
+              const SizedBox(width: 6),
+
+              // Tier 3: Macro Demographic Expansion
+              Expanded(
+                child: _tierColumn(
+                  context: context,
+                  isDark: isDark,
+                  tierLabel: 'Tier 3',
+                  count: '${crowd.tier3MacroEstimatedDevotees}',
+                  subtitle: '${crowd.tier3UnlinkedDevices} raw × ${multiplier.toStringAsFixed(1)}x',
+                  color: const Color(0xFF3B82F6),
+                  icon: Icons.groups_rounded,
+                ),
+              ),
+            ],
+          ),
+          const SizedBox(height: 10),
+
+          // Demographic Multiplier Mode Selector Chips
+          Row(
+            children: [
+              Text(
+                isTamil ? 'பெருக்கல் காரணி முறை:' : 'Expansion Multiplier:',
+                style: TextStyle(
+                  fontSize: 10.5,
+                  fontWeight: FontWeight.w600,
+                  color: AppTheme.textSecondaryOf(context),
+                ),
+              ),
+              const SizedBox(width: 6),
+              Expanded(
+                child: SingleChildScrollView(
+                  scrollDirection: Axis.horizontal,
+                  child: Row(
+                    children: [
+                      _multiplierChip(
+                        label: 'Weekday 1.8x',
+                        selected: mode == 'weekday',
+                        onTap: () => crowd.setDemographicMultiplier(1.8, 'weekday'),
+                      ),
+                      const SizedBox(width: 4),
+                      _multiplierChip(
+                        label: 'Weekend 2.5x',
+                        selected: mode == 'weekend',
+                        onTap: () => crowd.setDemographicMultiplier(2.5, 'weekend'),
+                      ),
+                      const SizedBox(width: 4),
+                      _multiplierChip(
+                        label: 'Festival 3.2x',
+                        selected: mode == 'festival',
+                        onTap: () => crowd.setDemographicMultiplier(3.2, 'festival'),
+                      ),
+                    ],
+                  ),
+                ),
+              ),
+            ],
+          ),
+          const SizedBox(height: 6),
+
+          // Reconciled Footfall explanation
+          Text(
+            isTamil
+                ? '• கைபேசி இல்லாத குழந்தைகள் & முதியவர்களை துல்லியமாக கணக்கில் கொண்டு உண்மையான தரிசன நெரிசல் கணக்கிடப்படுகிறது.'
+                : '• Accounts for non-smartphone devotees, children & toddlers for true queue forecasting.',
+            style: TextStyle(
+              fontSize: 10,
+              color: AppTheme.textSecondaryOf(context),
+              height: 1.3,
+            ),
+          ),
+        ],
+      ),
+    );
+  }
+
+  Widget _tierColumn({
+    required BuildContext context,
+    required bool isDark,
+    required String tierLabel,
+    required String count,
+    required String subtitle,
+    required Color color,
+    required IconData icon,
+  }) {
+    return Container(
+      padding: const EdgeInsets.symmetric(horizontal: 6, vertical: 8),
+      decoration: BoxDecoration(
+        color: color.withValues(alpha: isDark ? 0.12 : 0.08),
+        borderRadius: BorderRadius.circular(10),
+        border: Border.all(color: color.withValues(alpha: 0.3)),
+      ),
+      child: Column(
+        children: [
+          Row(
+            mainAxisAlignment: MainAxisAlignment.center,
+            children: [
+              Icon(icon, size: 12, color: color),
+              const SizedBox(width: 3),
+              Text(
+                tierLabel,
+                style: TextStyle(
+                  fontSize: 9.5,
+                  fontWeight: FontWeight.w800,
+                  color: color,
+                ),
+              ),
+            ],
+          ),
+          const SizedBox(height: 2),
+          Text(
+            count,
+            style: TextStyle(
+              fontSize: 15,
+              fontWeight: FontWeight.w900,
+              color: AppTheme.textPrimaryOf(context),
+            ),
+          ),
+          Text(
+            subtitle,
+            maxLines: 1,
+            overflow: TextOverflow.ellipsis,
+            style: TextStyle(
+              fontSize: 9,
+              fontWeight: FontWeight.w600,
+              color: AppTheme.textSecondaryOf(context),
+            ),
+          ),
+        ],
+      ),
+    );
+  }
+
+  Widget _multiplierChip({
+    required String label,
+    required bool selected,
+    required VoidCallback onTap,
+  }) {
+    return InkWell(
+      onTap: onTap,
+      borderRadius: BorderRadius.circular(6),
+      child: Container(
+        padding: const EdgeInsets.symmetric(horizontal: 6, vertical: 3),
+        decoration: BoxDecoration(
+          color: selected ? const Color(0xFFD97706) : Colors.transparent,
+          borderRadius: BorderRadius.circular(6),
+          border: Border.all(
+            color: selected ? const Color(0xFFD97706) : Colors.grey.withValues(alpha: 0.3),
+          ),
+        ),
+        child: Text(
+          label,
+          style: TextStyle(
+            fontSize: 9.5,
+            fontWeight: selected ? FontWeight.w800 : FontWeight.w600,
+            color: selected ? Colors.white : Colors.grey,
+          ),
+        ),
       ),
     );
   }

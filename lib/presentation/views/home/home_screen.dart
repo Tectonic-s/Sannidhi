@@ -4,6 +4,7 @@ import 'package:provider/provider.dart';
 import '../../../core/constants/app_theme.dart';
 import '../../../core/l10n/app_localizations.dart';
 import '../../../core/services/firebase_service.dart';
+import '../../../core/services/geofence_service.dart';
 import '../../../core/widgets/announcement_ticker.dart';
 import '../../../core/widgets/auth_required_dialog.dart';
 import '../../../core/widgets/crowd_forecaster_chart.dart';
@@ -15,6 +16,7 @@ import '../../../providers/accessibility_provider.dart';
 import '../../../providers/auth_provider.dart';
 import '../facility/facility_locator_screen.dart';
 import '../services/services_screen.dart';
+import 'family_visitor_prompt_bottom_sheet.dart';
 
 class HomeScreen extends StatelessWidget {
   final VoidCallback onToggleLocale;
@@ -534,7 +536,84 @@ class _CrowdStatusCard extends StatelessWidget {
               ),
             ],
           ),
+          const SizedBox(height: 10),
+
+          // Interactive 3-Tier Family Visitor Group Pill
+          _buildFamilyGroupQuickPill(context, isDark),
         ],
+      ),
+    );
+  }
+
+  Widget _buildFamilyGroupQuickPill(BuildContext context, bool isDark) {
+    final geofence = GeofenceService.instance;
+    final groupCount = geofence.currentSessionDevoteeCount;
+    final isInside = geofence.isInsideTemple;
+
+    return InkWell(
+      onTap: () => FamilyVisitorPromptBottomSheet.show(context, isTamil: isTamil),
+      borderRadius: BorderRadius.circular(10),
+      child: Container(
+        padding: const EdgeInsets.symmetric(horizontal: 10, vertical: 7),
+        decoration: BoxDecoration(
+          color: isDark ? const Color(0xFF1E293B).withValues(alpha: 0.6) : const Color(0xFFF8FAFC),
+          borderRadius: BorderRadius.circular(10),
+          border: Border.all(
+            color: isInside
+                ? const Color(0xFF10B981).withValues(alpha: 0.5)
+                : (isDark ? const Color(0xFF334155) : const Color(0xFFE2E8F0)),
+          ),
+        ),
+        child: Row(
+          children: [
+            Icon(
+              isInside ? Icons.verified_user_rounded : Icons.family_restroom_rounded,
+              size: 15,
+              color: isInside ? const Color(0xFF10B981) : const Color(0xFFD97706),
+            ),
+            const SizedBox(width: 7),
+            Expanded(
+              child: Text(
+                isInside
+                    ? (isTamil
+                        ? 'கோவில் வளாகம் • $groupCount பக்தர்கள் பதிவு (மாற்ற தட்டவும்)'
+                        : 'Inside Temple • $groupCount Devotees logged (Tap to adjust)')
+                    : (isTamil
+                        ? 'குடும்பத்துடன் வருகிறீர்களா? நபர் எண்ணிக்கை: $groupCount'
+                        : 'Visiting with family? Group count: $groupCount devotees'),
+                style: TextStyle(
+                  fontSize: 11,
+                  fontWeight: FontWeight.w700,
+                  color: isInside
+                      ? (isDark ? const Color(0xFF6EE7B7) : const Color(0xFF047857))
+                      : AppTheme.textPrimaryOf(context),
+                ),
+              ),
+            ),
+            Container(
+              padding: const EdgeInsets.symmetric(horizontal: 7, vertical: 2),
+              decoration: BoxDecoration(
+                color: const Color(0xFFD97706).withValues(alpha: 0.12),
+                borderRadius: BorderRadius.circular(6),
+              ),
+              child: Row(
+                mainAxisSize: MainAxisSize.min,
+                children: [
+                  Text(
+                    isTamil ? 'மாற்று' : 'Edit',
+                    style: const TextStyle(
+                      fontSize: 10,
+                      fontWeight: FontWeight.w800,
+                      color: Color(0xFFD97706),
+                    ),
+                  ),
+                  const SizedBox(width: 2),
+                  const Icon(Icons.arrow_forward_ios_rounded, size: 8, color: Color(0xFFD97706)),
+                ],
+              ),
+            ),
+          ],
+        ),
       ),
     );
   }
