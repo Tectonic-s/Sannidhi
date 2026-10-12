@@ -10,6 +10,7 @@ import '../../../core/widgets/auth_required_dialog.dart';
 import '../../../core/widgets/crowd_forecaster_chart.dart';
 import '../../../core/widgets/custom_app_bar.dart';
 import '../../../core/widgets/micro_animations.dart';
+import '../../../core/widgets/notification_demo_banner.dart';
 import '../../../data/repositories/mock_crowd_repository.dart';
 import '../../../data/repositories/mock_festival_repository.dart';
 import '../../../providers/accessibility_provider.dart';
@@ -74,6 +75,13 @@ class HomeScreen extends StatelessWidget {
                         isTamil: isTamil,
                         isElderly: access.isElderlyMode,
                       ),
+                    ),
+                    const SizedBox(height: 14),
+
+                    // 4B. Live Geofence & Family Footfall Notification Demo
+                    FadeSlideIn(
+                      delay: const Duration(milliseconds: 150),
+                      child: NotificationDemoBanner(isTamil: isTamil),
                     ),
                     const SizedBox(height: 14),
 

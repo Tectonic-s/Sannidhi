@@ -6,6 +6,7 @@ import '../../../core/l10n/app_localizations.dart';
 import '../../../core/widgets/custom_app_bar.dart';
 import '../../../core/widgets/devotee_avatar.dart';
 import '../../../core/widgets/micro_animations.dart';
+import '../../../core/widgets/notification_demo_banner.dart';
 import '../../../core/widgets/ticket_carousel_modal.dart';
 import '../../../providers/accessibility_provider.dart';
 import '../../../providers/auth_provider.dart';
@@ -103,6 +104,15 @@ class AccountScreen extends StatelessWidget {
                 builder: (_) => FacilityLocatorScreen(onToggleLocale: onToggleLocale),
               ),
             ),
+          ),
+          _ActionTile(
+            icon: Icons.notifications_active_rounded,
+            color: const Color(0xFFD97706),
+            title: isTamil ? 'ஜியோபென்ஸ் அறிவிப்பு மாதிரி (Demo)' : 'Geofence & Footfall Notification Demo',
+            subtitle: isTamil
+                ? 'கோயில் எல்லை நுழைவு அறிவிப்பு & குடும்ப உறுப்பினர் பதிவை சோதிக்க'
+                : 'Simulate temple arrival push notification & family count prompt',
+            onTap: () => NotificationDemoBanner.triggerDemo(context, isTamil: isTamil),
           ),
           _ActionTile(
             icon: Icons.accessibility_new,

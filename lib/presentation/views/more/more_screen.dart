@@ -8,6 +8,7 @@ import '../../../core/services/geofence_service.dart';
 import '../../../core/widgets/custom_app_bar.dart';
 import '../../../core/widgets/devotee_avatar.dart';
 import '../../../core/widgets/micro_animations.dart';
+import '../../../core/widgets/notification_demo_banner.dart';
 import '../../../core/widgets/ticket_carousel_modal.dart';
 import '../../../providers/accessibility_provider.dart';
 import '../../../providers/auth_provider.dart';
@@ -120,6 +121,8 @@ class MoreScreen extends StatelessWidget {
           _buildAccessibilityTile(context, access, isTamil),
           const SizedBox(height: 10),
           _buildFamilySizeConfigTile(context, isTamil),
+          const SizedBox(height: 10),
+          _buildNotificationDemoTile(context, isTamil),
           const SizedBox(height: 10),
           _buildBackendConfigTile(context, isTamil),
           const SizedBox(height: 20),
@@ -1040,6 +1043,21 @@ class MoreScreen extends StatelessWidget {
           ? 'தற்போது: $groupCount பக்தர்கள் (குழந்தைகள் உட்பட • மாற்ற தட்டவும்)'
           : 'Current: $groupCount devotees (Kids & family • Tap to customize)',
       onTap: () => FamilyVisitorPromptBottomSheet.show(context, isTamil: isTamil),
+    );
+  }
+
+  Widget _buildNotificationDemoTile(BuildContext context, bool isTamil) {
+    return _buildActionTile(
+      context: context,
+      icon: Icons.notifications_active_rounded,
+      color: const Color(0xFFD97706),
+      title: isTamil
+          ? 'ஜியோபென்ஸ் அறிவிப்பு மாதிரி (Demo)'
+          : 'Geofence Notification Demo',
+      subtitle: isTamil
+          ? 'எல்லை நுழைவு அறிவிப்பு & குழு பதிவு சோதிக்க'
+          : 'Simulate arrival push notification & group count popup',
+      onTap: () => NotificationDemoBanner.triggerDemo(context, isTamil: isTamil),
     );
   }
 }
