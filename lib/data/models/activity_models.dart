@@ -113,6 +113,37 @@ class DarshanBooking {
   bool get isExpired => !isAllUsed && isBookingExpired(slotTime: slotTime, date: date);
 }
 
+// ── Two-Wheeler Booking ───────────────────────────────────────────────────────
+
+class TwoWheelerBooking {
+  final String bookingId;
+  final String slotTime;
+  final double totalFare;
+  final int vehicleCount;
+  final String vehicleNumber;
+  final List<IndividualTicket> tickets;
+  final DateTime timestamp;
+  final String date;
+  bool isCancelled;
+
+  TwoWheelerBooking({
+    required this.bookingId,
+    required this.slotTime,
+    required this.totalFare,
+    required this.vehicleCount,
+    this.vehicleNumber = '',
+    required this.tickets,
+    required this.timestamp,
+    required this.date,
+    this.isCancelled = false,
+  });
+
+  bool get isAllUsed => tickets.isNotEmpty && tickets.every((t) => t.isUsed);
+  bool get isPartiallyUsed => tickets.any((t) => t.isUsed) && !isAllUsed;
+  int get usedCount => tickets.where((t) => t.isUsed).length;
+  bool get isExpired => !isAllUsed && isBookingExpired(slotTime: slotTime, date: date);
+}
+
 // ── Donation ──────────────────────────────────────────────────────────────────
 
 class DonationReceipt {

@@ -163,6 +163,7 @@ class GeofenceService {
 
   /// Allows manual simulation of geofence hardware trigger for testing
   Future<void> simulateHardwareTrigger(bool isEntering) async {
+    if (!_initialised) await init();
     if (isEntering) {
       _insideGeofence = true;
       await _handleGeofenceEnter(latitude: _templeLat, longitude: _templeLng);
@@ -191,9 +192,10 @@ class GeofenceService {
             )
           : AppleSettings(
               accuracy: LocationAccuracy.medium,
-              distanceFilter: 15,
+              distanceFilter: 25,
               activityType: ActivityType.other,
               pauseLocationUpdatesAutomatically: true,
+              showBackgroundLocationIndicator: false,
             );
 
       _positionSub = Geolocator.getPositionStream(
@@ -287,22 +289,21 @@ class GeofenceService {
       return;
     }
 
-    // ── Tier 2 Fallback: Interactive Lock-Screen & In-App Prompt
     _currentSessionDevoteeCount = 1;
-    pendingFamilyPromptNotifier.value = true;
+    pendingFamilyPromptNotifier.value = false;
 
     onArrivalContextResolved?.call(
       const GeofenceArrivalContext(
         event: GeofenceEvent.enter,
-        tier: 2,
+        tier: 1,
         devoteeCount: 1,
-        sourceDescription: 'Tier 2: Default 1 (Awaiting Devotee Prompt)',
+        sourceDescription: 'Temple Arrival (1 Devotee)',
       ),
     );
 
-    _notifyInteractive(
-      'Welcome to Sannidhi Temple 🙏',
-      'Visiting with family or children? Tap your total group size below:',
+    _notify(
+      'Welcome to Maruthamalai Devasthanam 🙏',
+      'You have arrived at the sacred temple. Live darshan queue & services are active.',
     );
   }
 
@@ -356,9 +357,6 @@ class GeofenceService {
     if (perm == LocationPermission.denied) {
       perm = await Geolocator.requestPermission();
     }
-    if (perm == LocationPermission.whileInUse) {
-      perm = await Geolocator.requestPermission();
-    }
     return perm == LocationPermission.always ||
         perm == LocationPermission.whileInUse;
   }
@@ -389,6 +387,17 @@ class GeofenceService {
       },
     );
 
+    if (!kIsWeb && Platform.isIOS) {
+      await _notifications
+          .resolvePlatformSpecificImplementation<
+              IOSFlutterLocalNotificationsPlugin>()
+          ?.requestPermissions(
+            alert: true,
+            badge: true,
+            sound: true,
+          );
+    }
+
     const channel = AndroidNotificationChannel(
       'geofence_channel',
       'Temple Geofence',
@@ -411,7 +420,13 @@ class GeofenceService {
         priority: Priority.high,
         icon: '@mipmap/ic_launcher',
       ),
-      iOS: DarwinNotificationDetails(),
+      iOS: DarwinNotificationDetails(
+        presentAlert: true,
+        presentBadge: true,
+        presentSound: true,
+        presentBanner: true,
+        presentList: true,
+      ),
     );
     await _notifications.show(0, title, body, details);
   }
@@ -432,7 +447,13 @@ class GeofenceService {
           AndroidNotificationAction('COUNT_5', '5+ Devotees'),
         ],
       ),
-      iOS: DarwinNotificationDetails(),
+      iOS: DarwinNotificationDetails(
+        presentAlert: true,
+        presentBadge: true,
+        presentSound: true,
+        presentBanner: true,
+        presentList: true,
+      ),
     );
     await _notifications.show(1, title, body, details);
   }

@@ -544,9 +544,9 @@ Arulmigu Subramaniyaswami Temple at Marudamalai is an ancient 12th-century hill 
 
     // Live crowd status if available
     final crowdData = crowdRepo?.getCrowdData();
-    final currentInside = crowdData?.currentVisitors ?? 1250;
-    final currentWait = crowdData?.estimatedWaitMinutes ?? 25;
-    final currentStatus = crowdData?.status ?? 'moderate';
+    final currentInside = crowdData?.currentVisitors ?? 0;
+    final currentWait = crowdData?.estimatedWaitMinutes ?? 5;
+    final currentStatus = crowdData?.status ?? 'low';
 
     final festivalsBuffer = StringBuffer();
     for (final f in festivalsLore) {

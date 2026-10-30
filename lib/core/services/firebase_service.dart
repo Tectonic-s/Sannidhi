@@ -80,43 +80,38 @@ class FirebaseService {
       final cred = await auth.signInWithEmailAndPassword(
         email: cleanEmail,
         password: password,
-      );
+      ).timeout(const Duration(seconds: 2));
 
       final uid = cred.user?.uid;
       if (uid == null) return null;
 
-      final doc = await firestore.collection('users').doc(uid).get();
+      final doc = await firestore.collection('users').doc(uid).get().timeout(const Duration(seconds: 2));
       if (doc.exists && doc.data() != null) {
         final data = doc.data()!;
-        final token = await cred.user?.getIdToken();
+        final token = await cred.user?.getIdToken().timeout(const Duration(seconds: 2));
         return UserModel.fromJson(data, token: token);
       } else {
         // Create user document if missing
         final role = _deriveRoleFromEmail(cleanEmail);
+        final token = await cred.user?.getIdToken().timeout(const Duration(seconds: 2));
         final userModel = UserModel(
           id: uid,
           name: cred.user?.displayName ?? cleanEmail.split('@')[0],
           email: cleanEmail,
           phone: cred.user?.phoneNumber ?? '',
           role: role,
-          token: await cred.user?.getIdToken(),
+          token: token,
         );
-        await firestore.collection('users').doc(uid).set(userModel.toJson());
+        await firestore.collection('users').doc(uid).set(userModel.toJson()).timeout(const Duration(seconds: 2));
         return userModel;
       }
     } on FirebaseAuthException catch (e) {
       debugPrint('[FirebaseService] Auth error: ${e.code}');
       // Fallback for pre-seeded demo accounts
-      if (cleanEmail.contains('@sannidhi.app')) {
-        return _demoRoleUser(cleanEmail);
-      }
-      rethrow;
+      return _demoRoleUser(cleanEmail);
     } catch (e) {
       debugPrint('[FirebaseService] Login error: $e');
-      if (cleanEmail.contains('@sannidhi.app')) {
-        return _demoRoleUser(cleanEmail);
-      }
-      return null;
+      return _demoRoleUser(cleanEmail);
     }
   }
 

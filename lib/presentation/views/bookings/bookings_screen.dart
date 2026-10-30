@@ -192,6 +192,7 @@ class _BookPassesTabState extends State<_BookPassesTab> {
     );
     _shuttleSlot = firstAvailable;
     _darshanSlot = firstAvailable;
+    _twoWheelerSlot = firstAvailable;
     _slotRefreshTimer = Timer.periodic(const Duration(minutes: 1), (_) {
       if (mounted) setState(() {});
     });
@@ -208,6 +209,7 @@ class _BookPassesTabState extends State<_BookPassesTab> {
   @override
   void dispose() {
     _slotRefreshTimer?.cancel();
+    _vehicleNumberController.dispose();
     super.dispose();
   }
 
@@ -235,6 +237,11 @@ class _BookPassesTabState extends State<_BookPassesTab> {
   int _darshanIdx = 0;
   int _devotees = 1;
 
+  // Two-Wheeler state
+  String _twoWheelerSlot = '09:00 AM';
+  int _twoWheelerCount = 1;
+  final TextEditingController _vehicleNumberController = TextEditingController();
+
   @override
   Widget build(BuildContext context) {
     final auth = context.watch<AuthProvider>();
@@ -244,7 +251,7 @@ class _BookPassesTabState extends State<_BookPassesTab> {
 
     return Column(
       children: [
-        // ── Sub-page Segmented Switcher ─────────────────────────────────────
+        // ── Sub-page Segmented Switcher (3 Tabs) ────────────────────────────
         Container(
           margin: const EdgeInsets.fromLTRB(16, 12, 16, 6),
           padding: const EdgeInsets.all(4),
@@ -261,7 +268,7 @@ class _BookPassesTabState extends State<_BookPassesTab> {
                   onTap: () => setState(() => _selectedSubPage = 0),
                   child: AnimatedContainer(
                     duration: const Duration(milliseconds: 200),
-                    padding: const EdgeInsets.symmetric(vertical: 10),
+                    padding: const EdgeInsets.symmetric(vertical: 9, horizontal: 4),
                     decoration: BoxDecoration(
                       color: _selectedSubPage == 0 ? AppColors.templeMaroon : Colors.transparent,
                       borderRadius: BorderRadius.circular(12),
@@ -280,16 +287,20 @@ class _BookPassesTabState extends State<_BookPassesTab> {
                       children: [
                         Icon(
                           Icons.directions_bus_rounded,
-                          size: 18,
+                          size: 16,
                           color: _selectedSubPage == 0 ? Colors.white : AppTheme.textSecondaryOf(context),
                         ),
-                        const SizedBox(width: 8),
-                        Text(
-                          isTamil ? 'பேருந்து முன்பதிவு' : 'Bus Booking',
-                          style: TextStyle(
-                            fontSize: 13,
-                            fontWeight: FontWeight.w800,
-                            color: _selectedSubPage == 0 ? Colors.white : AppTheme.textSecondaryOf(context),
+                        const SizedBox(width: 4),
+                        Flexible(
+                          child: Text(
+                            isTamil ? 'பேருந்து முன்பதிவு' : 'Bus Booking',
+                            style: TextStyle(
+                              fontSize: 11,
+                              fontWeight: FontWeight.w800,
+                              color: _selectedSubPage == 0 ? Colors.white : AppTheme.textSecondaryOf(context),
+                            ),
+                            maxLines: 1,
+                            overflow: TextOverflow.ellipsis,
                           ),
                         ),
                       ],
@@ -297,14 +308,14 @@ class _BookPassesTabState extends State<_BookPassesTab> {
                   ),
                 ),
               ),
-              const SizedBox(width: 6),
+              const SizedBox(width: 4),
               Expanded(
                 child: InkWell(
                   borderRadius: BorderRadius.circular(12),
                   onTap: () => setState(() => _selectedSubPage = 1),
                   child: AnimatedContainer(
                     duration: const Duration(milliseconds: 200),
-                    padding: const EdgeInsets.symmetric(vertical: 10),
+                    padding: const EdgeInsets.symmetric(vertical: 9, horizontal: 4),
                     decoration: BoxDecoration(
                       color: _selectedSubPage == 1 ? AppColors.deepSaffron : Colors.transparent,
                       borderRadius: BorderRadius.circular(12),
@@ -323,16 +334,67 @@ class _BookPassesTabState extends State<_BookPassesTab> {
                       children: [
                         Icon(
                           Icons.temple_hindu_rounded,
-                          size: 18,
+                          size: 16,
                           color: _selectedSubPage == 1 ? Colors.white : AppTheme.textSecondaryOf(context),
                         ),
-                        const SizedBox(width: 8),
-                        Text(
-                          isTamil ? 'தரிசன முன்பதிவு' : 'Darshan Booking',
-                          style: TextStyle(
-                            fontSize: 13,
-                            fontWeight: FontWeight.w800,
-                            color: _selectedSubPage == 1 ? Colors.white : AppTheme.textSecondaryOf(context),
+                        const SizedBox(width: 4),
+                        Flexible(
+                          child: Text(
+                            isTamil ? 'தரிசனம் முன்பதிவு' : 'Darshan Booking',
+                            style: TextStyle(
+                              fontSize: 11,
+                              fontWeight: FontWeight.w800,
+                              color: _selectedSubPage == 1 ? Colors.white : AppTheme.textSecondaryOf(context),
+                            ),
+                            maxLines: 1,
+                            overflow: TextOverflow.ellipsis,
+                          ),
+                        ),
+                      ],
+                    ),
+                  ),
+                ),
+              ),
+              const SizedBox(width: 4),
+              Expanded(
+                child: InkWell(
+                  borderRadius: BorderRadius.circular(12),
+                  onTap: () => setState(() => _selectedSubPage = 2),
+                  child: AnimatedContainer(
+                    duration: const Duration(milliseconds: 200),
+                    padding: const EdgeInsets.symmetric(vertical: 9, horizontal: 4),
+                    decoration: BoxDecoration(
+                      color: _selectedSubPage == 2 ? const Color(0xFF0D9488) : Colors.transparent,
+                      borderRadius: BorderRadius.circular(12),
+                      boxShadow: _selectedSubPage == 2
+                          ? [
+                              BoxShadow(
+                                color: const Color(0xFF0D9488).withValues(alpha: 0.3),
+                                blurRadius: 6,
+                                offset: const Offset(0, 2),
+                              )
+                            ]
+                          : null,
+                    ),
+                    child: Row(
+                      mainAxisAlignment: MainAxisAlignment.center,
+                      children: [
+                        Icon(
+                          Icons.two_wheeler_rounded,
+                          size: 16,
+                          color: _selectedSubPage == 2 ? Colors.white : AppTheme.textSecondaryOf(context),
+                        ),
+                        const SizedBox(width: 4),
+                        Flexible(
+                          child: Text(
+                            isTamil ? 'வாகன முன்பதிவு' : 'Two-Wheeler Booking',
+                            style: TextStyle(
+                              fontSize: 11,
+                              fontWeight: FontWeight.w800,
+                              color: _selectedSubPage == 2 ? Colors.white : AppTheme.textSecondaryOf(context),
+                            ),
+                            maxLines: 1,
+                            overflow: TextOverflow.ellipsis,
                           ),
                         ),
                       ],
@@ -348,7 +410,9 @@ class _BookPassesTabState extends State<_BookPassesTab> {
         Expanded(
           child: _selectedSubPage == 0
               ? _buildBusBookingPage(auth, isTamil)
-              : _buildDarshanBookingPage(auth, isTamil),
+              : (_selectedSubPage == 1
+                  ? _buildDarshanBookingPage(auth, isTamil)
+                  : _buildTwoWheelerBookingPage(auth, isTamil)),
         ),
       ],
     );
@@ -833,6 +897,262 @@ class _BookPassesTabState extends State<_BookPassesTab> {
     );
   }
 
+  // ── Sub-Page 3: Two-Wheeler Booking ───────────────────────────────────────
+  Widget _buildTwoWheelerBookingPage(AuthProvider auth, bool isTamil) {
+    final fare = _twoWheelerCount * 20;
+
+    return ListView(
+      key: const ValueKey('two_wheeler_booking_sub_page'),
+      padding: const EdgeInsets.fromLTRB(16, 6, 16, 100),
+      children: [
+        if (!auth.isAuthenticated)
+          AuthLockBanner(
+            featureName: isTamil ? 'இருசக்கர வாகன அனுமதி' : 'Two-Wheeler Pass Booking',
+          ),
+
+        // Route & Service Header Card
+        Container(
+          padding: const EdgeInsets.all(16),
+          decoration: BoxDecoration(
+            gradient: const LinearGradient(
+              colors: [Color(0xFF0F766E), Color(0xFF115E59)],
+              begin: Alignment.topLeft,
+              end: Alignment.bottomRight,
+            ),
+            borderRadius: BorderRadius.circular(16),
+            border: Border.all(
+              color: AppColors.goldAccent.withValues(alpha: 0.35),
+              width: 1.2,
+            ),
+            boxShadow: [
+              BoxShadow(
+                color: const Color(0xFF0F766E).withValues(alpha: 0.25),
+                blurRadius: 10,
+                offset: const Offset(0, 3),
+              ),
+            ],
+          ),
+          child: Column(
+            crossAxisAlignment: CrossAxisAlignment.start,
+            children: [
+              Row(
+                children: [
+                  Container(
+                    padding: const EdgeInsets.all(8),
+                    decoration: BoxDecoration(
+                      color: Colors.white.withValues(alpha: 0.2),
+                      borderRadius: BorderRadius.circular(10),
+                    ),
+                    child: const Icon(Icons.two_wheeler_rounded, color: Colors.white, size: 24),
+                  ),
+                  const SizedBox(width: 12),
+                  Expanded(
+                    child: Column(
+                      crossAxisAlignment: CrossAxisAlignment.start,
+                      children: [
+                        Text(
+                          isTamil ? 'இருசக்கர வாகன அனுமதி & நிறுத்தம்' : 'Two-Wheeler Parking & Pass',
+                          style: const TextStyle(
+                            fontSize: 16,
+                            fontWeight: FontWeight.w800,
+                            color: Colors.white,
+                          ),
+                        ),
+                        Text(
+                          isTamil ? 'அடிவாரம் பார்க்கிங் & மலைப்பாதை நுழைவு' : 'Adivaram Covered Bay & Hilltop Road Pass',
+                          style: const TextStyle(
+                            fontSize: 12,
+                            color: Colors.white70,
+                            fontWeight: FontWeight.w500,
+                          ),
+                        ),
+                      ],
+                    ),
+                  ),
+                  Container(
+                    padding: const EdgeInsets.symmetric(horizontal: 10, vertical: 4),
+                    decoration: BoxDecoration(
+                      color: Colors.white,
+                      borderRadius: BorderRadius.circular(20),
+                    ),
+                    child: const Text(
+                      '₹20 / bike',
+                      style: TextStyle(
+                        fontSize: 12,
+                        fontWeight: FontWeight.w800,
+                        color: Color(0xFF0F766E),
+                      ),
+                    ),
+                  ),
+                ],
+              ),
+              const SizedBox(height: 14),
+              Wrap(
+                spacing: 8,
+                runSpacing: 6,
+                children: [
+                  _pillBadge(Icons.lock_outline, isTamil ? 'ஹெல்மெட் லாக்கர்' : 'Helmet Locker Bay'),
+                  _pillBadge(Icons.roofing_rounded, isTamil ? 'நிழல் மேற்கூரை' : 'Covered Bay'),
+                  _pillBadge(Icons.security_rounded, isTamil ? '24/7 CCTV கண்காணிப்பு' : '24/7 CCTV Security'),
+                  _pillBadge(Icons.qr_code_scanner_rounded, isTamil ? 'விரைவு QR சரிபார்ப்பு' : 'Fast-Track QR Gate'),
+                ],
+              ),
+            ],
+          ),
+        ),
+        const SizedBox(height: 16),
+
+        // Visiting Date & Arrival Slot Selection
+        _sectionCard(
+          icon: Icons.access_time_rounded,
+          color: const Color(0xFF0D9488),
+          title: isTamil ? 'வருகை தேதி & நுழைவு நேரம்' : 'Visiting Date & Entry Time Slot',
+          subtitle: isTamil
+              ? 'அடிவாரம் இருசக்கர வாகன முனையம் • 7 நாட்கள் முன்பதிவு'
+              : 'Adivaram Two-Wheeler Bay Entry • Book up to 7 days ahead',
+          child: Column(
+            crossAxisAlignment: CrossAxisAlignment.start,
+            children: [
+              _buildDateSelector(
+                color: const Color(0xFF0D9488),
+                isTamil: isTamil,
+              ),
+              const SizedBox(height: 14),
+              _SlotGrid(
+                slots: _slots,
+                selected: _twoWheelerSlot,
+                selectedDate: _selectedBookingDate,
+                color: const Color(0xFF0D9488),
+                onSelect: (s) => setState(() => _twoWheelerSlot = s),
+              ),
+              const SizedBox(height: 16),
+              _Counter(
+                label: isTamil ? 'இருசக்கர வாகனங்கள் எண்ணிக்கை' : 'Number of Two-Wheelers',
+                count: _twoWheelerCount,
+                max: 4,
+                color: const Color(0xFF0D9488),
+                onChanged: (v) => setState(() => _twoWheelerCount = v),
+              ),
+              const SizedBox(height: 14),
+              TextField(
+                controller: _vehicleNumberController,
+                textCapitalization: TextCapitalization.characters,
+                decoration: InputDecoration(
+                  labelText: isTamil ? 'வாகன பதிவு எண் (விருப்பத்தேர்வு)' : 'Vehicle Reg. Number (Optional)',
+                  hintText: 'e.g. TN 38 AB 1234',
+                  prefixIcon: const Icon(Icons.pin, color: Color(0xFF0D9488), size: 20),
+                  border: OutlineInputBorder(borderRadius: BorderRadius.circular(12)),
+                  contentPadding: const EdgeInsets.symmetric(horizontal: 14, vertical: 12),
+                ),
+              ),
+            ],
+          ),
+        ),
+        const SizedBox(height: 16),
+
+        // Fare Summary & Bay Info
+        Container(
+          padding: const EdgeInsets.all(16),
+          decoration: BoxDecoration(
+            color: AppTheme.cardBg(context),
+            borderRadius: BorderRadius.circular(16),
+            border: Border.all(color: AppTheme.borderColor(context)),
+          ),
+          child: Column(
+            children: [
+              _summaryRow(
+                isTamil ? 'வருகை தேதி' : 'Visit Date',
+                _formatDisplayDate(_selectedBookingDate, isTamil),
+              ),
+              _summaryRow(
+                isTamil ? 'நுழைவு நேரம்' : 'Arrival Slot',
+                _twoWheelerSlot,
+              ),
+              _summaryRow(
+                isTamil ? 'ஒரு வாகன கட்டணம்' : 'Parking & Pass Tariff',
+                '₹20',
+              ),
+              _summaryRow(
+                isTamil ? 'வாகனங்கள் எண்ணிக்கை' : 'Vehicles Selected',
+                '$_twoWheelerCount',
+              ),
+              if (_vehicleNumberController.text.trim().isNotEmpty)
+                _summaryRow(
+                  isTamil ? 'வாகன எண்' : 'Vehicle Number',
+                  _vehicleNumberController.text.trim().toUpperCase(),
+                ),
+              _summaryRow(
+                isTamil ? 'வாகன நிறுத்துமிடம்' : 'Designated Bay',
+                isTamil ? 'அடிவாரம் இருசக்கர வாகன முனையம் (வாயில் 2)' : 'Adivaram Two-Wheeler Bay (Gate 2)',
+              ),
+              const Divider(height: 20),
+              Row(
+                mainAxisAlignment: MainAxisAlignment.spaceBetween,
+                children: [
+                  Text(
+                    isTamil ? 'மொத்தக் கட்டணம்' : 'Total Amount',
+                    style: TextStyle(
+                      fontSize: 15,
+                      fontWeight: FontWeight.w800,
+                      color: AppTheme.textPrimaryOf(context),
+                    ),
+                  ),
+                  Text(
+                    '₹$fare',
+                    style: const TextStyle(
+                      fontSize: 20,
+                      fontWeight: FontWeight.w900,
+                      color: Color(0xFF0D9488),
+                    ),
+                  ),
+                ],
+              ),
+            ],
+          ),
+        ),
+        const SizedBox(height: 16),
+
+        // Book Button
+        _bookButton(
+          label: isTamil ? 'இருசக்கர வாகன பாஸ் பதிவு செய் • ₹$fare' : 'Book Two-Wheeler Pass  •  ₹$fare',
+          color: const Color(0xFF0D9488),
+          onTap: _bookTwoWheeler,
+        ),
+        const SizedBox(height: 16),
+
+        // Parking & Safety Guidelines
+        _infoCard(
+          icon: Icons.shield_outlined,
+          title: isTamil ? 'பாதுகாப்பு & பார்க்கிங் வழிகாட்டுதல்கள்' : 'Parking & Safety Guidelines',
+          points: [
+            isTamil
+                ? 'இருசக்கர வாகன ஓட்டுநர்கள் கட்டாயம் தலைக்கவசம் (Helmet) அணிய வேண்டும்.'
+                : 'Helmets are mandatory for both rider and pillion on ghat roads.',
+            isTamil
+                ? 'ஹெல்மெட்டுகளை அடிவாரம் லாக்கர் பிரிவில் பாதுகாப்பாக வைக்கலாம்.'
+                : 'Secure covered helmet lockers are available at Adivaram bay.',
+            isTamil
+                ? 'QR பாஸை வாயிலில் காண்பித்து விரைவாக அனுமதி பெறலாம்.'
+                : 'Show QR pass on arrival for fast-track barcode gate entry.',
+          ],
+        ),
+        const SizedBox(height: 12),
+
+        // Switch to Darshan sub-page
+        _switchPageCard(
+          icon: Icons.temple_hindu_rounded,
+          color: AppColors.deepSaffron,
+          title: isTamil ? 'தரிசன அனுமதி தேவையா?' : 'Need a Darshan Pass too?',
+          subtitle: isTamil
+              ? 'இலவச, சிறப்பு அல்லது வி.ஐ.பி தரிசன வரிசை முன்பதிவு செய்ய இங்கே கிளிக் செய்யவும்.'
+              : 'Book Free, Special (₹50) or VIP (₹250) Darshan tickets.',
+          actionText: isTamil ? 'தரிசன முன்பதிவு செல்ல ➔' : 'Go to Darshan Booking ➔',
+          onTap: () => setState(() => _selectedSubPage = 1),
+        ),
+      ],
+    );
+  }
+
   void _onDateSelected(DateTime d) {
     setState(() {
       _selectedBookingDate = DateTime(d.year, d.month, d.day);
@@ -845,6 +1165,12 @@ class _BookPassesTabState extends State<_BookPassesTab> {
         }
         if (_isSlotPast(_darshanSlot, _selectedBookingDate)) {
           _darshanSlot = _slots.firstWhere(
+            (s) => !_isSlotPast(s, _selectedBookingDate),
+            orElse: () => _slots.last,
+          );
+        }
+        if (_isSlotPast(_twoWheelerSlot, _selectedBookingDate)) {
+          _twoWheelerSlot = _slots.firstWhere(
             (s) => !_isSlotPast(s, _selectedBookingDate),
             orElse: () => _slots.last,
           );
@@ -1262,25 +1588,30 @@ class _BookPassesTabState extends State<_BookPassesTab> {
             shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(14)),
           ),
           child: Row(
-          mainAxisAlignment: MainAxisAlignment.center,
-          children: [
-            Icon(
-              isAuth ? Icons.check_circle_outline : Icons.lock,
-              color: Colors.white,
-              size: 20,
-            ),
-            const SizedBox(width: 8),
-            Text(
-              isAuth ? label : 'Sign In to Access ($label)',
-              style: const TextStyle(
-                fontSize: 15,
-                fontWeight: FontWeight.w800,
+            mainAxisAlignment: MainAxisAlignment.center,
+            mainAxisSize: MainAxisSize.min,
+            children: [
+              Icon(
+                isAuth ? Icons.check_circle_outline : Icons.lock,
                 color: Colors.white,
-                letterSpacing: 0.3,
+                size: 20,
               ),
-            ),
-          ],
-        ),
+              const SizedBox(width: 8),
+              Flexible(
+                child: Text(
+                  isAuth ? label : 'Sign In to Access ($label)',
+                  maxLines: 1,
+                  overflow: TextOverflow.ellipsis,
+                  style: const TextStyle(
+                    fontSize: 15,
+                    fontWeight: FontWeight.w800,
+                    color: Colors.white,
+                    letterSpacing: 0.3,
+                  ),
+                ),
+              ),
+            ],
+          ),
       ),
     ),
     );
@@ -1460,6 +1791,91 @@ class _BookPassesTabState extends State<_BookPassesTab> {
       date: date,
       bookingId: bookingId,
       darshanType: type.name,
+    );
+  }
+
+  void _bookTwoWheeler() {
+    final auth = context.read<AuthProvider>();
+    if (!auth.isAuthenticated) {
+      showAuthRequiredDialog(
+        context: context,
+        featureName: 'Two-Wheeler Pass Booking',
+      );
+      return;
+    }
+    if (_isSlotPast(_twoWheelerSlot, _selectedBookingDate)) {
+      _showPastSlotMessage();
+      return;
+    }
+    final user = auth.currentUser;
+    final amount = (_twoWheelerCount * 20).toDouble();
+
+    CashfreePaymentService.instance.startPayment(
+      context: context,
+      amount: amount,
+      description: 'Two-Wheeler Parking & Pass',
+      customerId: user != null && user.id.isNotEmpty
+          ? user.id
+          : 'devotee_${DateTime.now().millisecondsSinceEpoch}',
+      customerName: user != null && user.name.isNotEmpty ? user.name : 'Devotee',
+      customerEmail: user != null && user.email.isNotEmpty ? user.email : 'devotee@sannidhi.app',
+      customerPhone: user != null && user.phone.isNotEmpty ? user.phone : '9999999999',
+    ).then((result) {
+      if (!mounted) return;
+      if (result.result == CashfreePaymentResult.success) {
+        _completeTwoWheeler(amount);
+      } else if (result.result == CashfreePaymentResult.failure) {
+        showCashfreePaymentFailureDialog(
+          context: context,
+          message: result.message,
+          onRetry: _bookTwoWheeler,
+          onSimulateComplete: () => _completeTwoWheeler(amount),
+        );
+      }
+    });
+  }
+
+  void _completeTwoWheeler(double amount) {
+    final auth = context.read<AuthProvider>();
+    final user = auth.currentUser;
+    final provider = context.read<UserActivityProvider>();
+    final bookingId = UserActivityProvider.generateBookingId('TW');
+    final now = DateTime.now();
+    final bookingDate = _selectedBookingDate;
+    final date =
+        '${bookingDate.year}-${bookingDate.month.toString().padLeft(2, '0')}-${bookingDate.day.toString().padLeft(2, '0')}';
+    final tickets = UserActivityProvider.generateTickets(
+      bookingId: bookingId,
+      count: _twoWheelerCount,
+      type: 'BIKE',
+      slot: _twoWheelerSlot,
+      date: date,
+    );
+    final vehicleNumber = _vehicleNumberController.text.trim().toUpperCase();
+    final booking = TwoWheelerBooking(
+      bookingId: bookingId,
+      slotTime: _twoWheelerSlot,
+      totalFare: amount,
+      vehicleCount: _twoWheelerCount,
+      vehicleNumber: vehicleNumber,
+      tickets: tickets,
+      timestamp: now,
+      date: date,
+    );
+    provider.addTwoWheelerBooking(
+      booking,
+      token: auth.token,
+      userId: user?.id,
+    );
+    showTicketCarousel(
+      context: context,
+      tickets: tickets,
+      type: TicketCarouselType.twoWheeler,
+      slotTime: _twoWheelerSlot,
+      date: date,
+      bookingId: bookingId,
+      pickupLocation: 'Adivaram Two-Wheeler Bay',
+      dropLocation: 'Covered Bay & Locker Post',
     );
   }
 }
@@ -1934,8 +2350,9 @@ class _MyPassesTabState extends State<_MyPassesTab> {
     final provider = context.watch<UserActivityProvider>();
     final shuttles = provider.activeShuttleBookings;
     final darshans = provider.darshanBookings;
+    final twoWheelers = provider.activeTwoWheelerBookings;
 
-    if (shuttles.isEmpty && darshans.isEmpty) {
+    if (shuttles.isEmpty && darshans.isEmpty && twoWheelers.isEmpty) {
       return Center(
         child: Column(
           mainAxisSize: MainAxisSize.min,
@@ -1954,8 +2371,8 @@ class _MyPassesTabState extends State<_MyPassesTab> {
             const SizedBox(height: 6),
             Text(
               isTamil
-                  ? 'தொடங்க பேருந்து அல்லது தரிசன பாஸை முன்பதிவு செய்யவும்'
-                  : 'Book a shuttle or darshan pass to get started',
+                  ? 'தொடங்க பேருந்து, தரிசனம் அல்லது வாகன பாஸை முன்பதிவு செய்யவும்'
+                  : 'Book a shuttle, darshan, or two-wheeler pass to get started',
               style: TextStyle(
                 color: AppTheme.textSecondaryOf(context),
                 fontSize: 12.5,
@@ -1988,6 +2405,15 @@ class _MyPassesTabState extends State<_MyPassesTab> {
             ...darshans.asMap().entries.map((e) => FadeSlideIn(
                   delay: Duration(milliseconds: 35 * e.key),
                   child: _DarshanBookingCard(booking: e.value, isTamil: isTamil),
+                )),
+            const SizedBox(height: 20),
+          ],
+          if (twoWheelers.isNotEmpty) ...[
+            _header(isTamil ? 'இருசக்கர வாகன பாஸ்கள்' : 'Two-Wheeler Passes', Icons.two_wheeler_rounded, const Color(0xFF0D9488)),
+            const SizedBox(height: 8),
+            ...twoWheelers.asMap().entries.map((e) => FadeSlideIn(
+                  delay: Duration(milliseconds: 35 * e.key),
+                  child: _TwoWheelerBookingCard(booking: e.value, isTamil: isTamil),
                 )),
           ],
         ],
@@ -2083,6 +2509,45 @@ class _DarshanBookingCard extends StatelessWidget {
         subtitle: isTamil
             ? '${booking.ticketCount} பக்தர்(கள்)  •  ${booking.totalAmount == 0 ? 'இலவசம்' : '₹${booking.totalAmount.toInt()}'}  •  ${booking.date}'
             : '${booking.ticketCount} devotee(s)  •  ${booking.totalAmount == 0 ? 'Free' : '₹${booking.totalAmount.toInt()}'}  •  ${booking.date}',
+        ticketCount: booking.tickets.length,
+        bookingId: booking.bookingId,
+        isUsed: booking.isAllUsed,
+        isExpired: booking.isExpired,
+        usedCount: booking.usedCount,
+        isTamil: isTamil,
+      ),
+    );
+  }
+}
+
+class _TwoWheelerBookingCard extends StatelessWidget {
+  final TwoWheelerBooking booking;
+  final bool isTamil;
+  const _TwoWheelerBookingCard({required this.booking, required this.isTamil});
+
+  @override
+  Widget build(BuildContext context) {
+    final vehicleDetails = booking.vehicleNumber.isNotEmpty
+        ? ' • ${booking.vehicleNumber}'
+        : '';
+    return BouncingScaleTap(
+      onTap: () => showTicketCarousel(
+        context: context,
+        tickets: booking.tickets,
+        type: TicketCarouselType.twoWheeler,
+        slotTime: booking.slotTime,
+        date: booking.date,
+        bookingId: booking.bookingId,
+        pickupLocation: isTamil ? 'அடிவாரம் இருசக்கர வாகன முனையம்' : 'Adivaram Two-Wheeler Bay',
+        dropLocation: isTamil ? 'ஹெல்மெட் லாக்கர் பிரிவு' : 'Covered Bay & Locker Post',
+      ),
+      child: _PassCard(
+        icon: Icons.two_wheeler_rounded,
+        color: const Color(0xFF0D9488),
+        title: isTamil ? 'இருசக்கர வாகனம் — ${booking.slotTime}' : 'Two-Wheeler — ${booking.slotTime}',
+        subtitle: isTamil
+            ? '${booking.vehicleCount} வாகனம்  •  ₹${booking.totalFare.toInt()}  •  ${booking.date}$vehicleDetails'
+            : '${booking.vehicleCount} vehicle(s)  •  ₹${booking.totalFare.toInt()}  •  ${booking.date}$vehicleDetails',
         ticketCount: booking.tickets.length,
         bookingId: booking.bookingId,
         isUsed: booking.isAllUsed,

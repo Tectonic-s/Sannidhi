@@ -95,6 +95,15 @@ class NotificationService {
           // Request Android 13+ runtime permissions
           await androidImpl.requestNotificationsPermission();
         }
+      } else if (!kIsWeb && Platform.isIOS) {
+        final iosImpl = _notificationsPlugin
+            .resolvePlatformSpecificImplementation<
+                IOSFlutterLocalNotificationsPlugin>();
+        await iosImpl?.requestPermissions(
+          alert: true,
+          badge: true,
+          sound: true,
+        );
       }
 
       _isInitialized = true;
@@ -160,6 +169,8 @@ class NotificationService {
           presentAlert: true,
           presentBadge: true,
           presentSound: true,
+          presentBanner: true,
+          presentList: true,
         ),
       );
 
@@ -210,6 +221,8 @@ class NotificationService {
           presentAlert: true,
           presentBadge: true,
           presentSound: true,
+          presentBanner: true,
+          presentList: true,
         ),
       );
 

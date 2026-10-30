@@ -12,6 +12,7 @@ class UserActivityProvider extends ChangeNotifier {
   // New booking lists
   final List<ShuttleBooking> _shuttleBookings = [];
   final List<DarshanBooking> _darshanBookings = [];
+  final List<TwoWheelerBooking> _twoWheelerBookings = [];
   final List<DonationReceipt> _donationReceipts = [];
 
   // Legacy lists (kept for backward compat with tax_receipt_service etc.)
@@ -33,6 +34,12 @@ class UserActivityProvider extends ChangeNotifier {
 
   List<DarshanBooking> get darshanBookings =>
       List.unmodifiable(_darshanBookings);
+
+  List<TwoWheelerBooking> get twoWheelerBookings =>
+      List.unmodifiable(_twoWheelerBookings);
+
+  List<TwoWheelerBooking> get activeTwoWheelerBookings =>
+      _twoWheelerBookings.where((b) => !b.isCancelled).toList();
 
   List<DonationReceipt> get donationReceipts =>
       List.unmodifiable(_donationReceipts);
@@ -135,6 +142,46 @@ class UserActivityProvider extends ChangeNotifier {
         }
       }
 
+      // Load two-wheeler bookings
+      final twRaw = prefs.getString('sannidhi_two_wheeler_bookings');
+      if (twRaw != null) {
+        final list = jsonDecode(twRaw) as List<dynamic>;
+        _twoWheelerBookings.clear();
+        for (final item in list) {
+          final m = item as Map<String, dynamic>;
+          final ticketsRaw = m['tickets'] as List<dynamic>? ?? [];
+          final tickets = ticketsRaw.map((t) {
+            final tid = t['ticketId'] ?? '';
+            final qr = t['qrPayload'] ?? '';
+            final isUsed = (t['isUsed'] == true) ||
+                (t['status'] == 'USED') ||
+                usedIds.contains(tid) ||
+                usedIds.contains(qr);
+            return IndividualTicket(
+              ticketId: tid,
+              qrPayload: qr,
+              ticketLabel: t['ticketLabel'] ?? '',
+              isUsed: isUsed,
+              usedAt: t['usedAt'] != null ? DateTime.tryParse(t['usedAt']) : null,
+              verifiedBy: t['verifiedBy'],
+              slotTime: t['slotTime'] ?? m['slotTime'],
+              date: t['date'] ?? m['date'],
+            );
+          }).toList();
+          _twoWheelerBookings.add(TwoWheelerBooking(
+            bookingId: m['bookingId'] ?? '',
+            slotTime: m['slotTime'] ?? '',
+            totalFare: (m['totalFare'] as num?)?.toDouble() ?? 0.0,
+            vehicleCount: m['vehicleCount'] ?? 1,
+            vehicleNumber: m['vehicleNumber'] ?? '',
+            tickets: tickets,
+            timestamp: DateTime.tryParse(m['timestamp'] ?? '') ?? DateTime.now(),
+            date: m['date'] ?? '',
+            isCancelled: m['isCancelled'] ?? false,
+          ));
+        }
+      }
+
       // Load donations
       final donRaw = prefs.getString('sannidhi_donations');
       if (donRaw != null) {
@@ -209,6 +256,30 @@ class UserActivityProvider extends ChangeNotifier {
           .toList());
       await prefs.setString('sannidhi_darshan_bookings', darshanJson);
 
+      final twJson = jsonEncode(_twoWheelerBookings
+          .map((b) => {
+                'bookingId': b.bookingId,
+                'slotTime': b.slotTime,
+                'totalFare': b.totalFare,
+                'vehicleCount': b.vehicleCount,
+                'vehicleNumber': b.vehicleNumber,
+                'date': b.date,
+                'timestamp': b.timestamp.toIso8601String(),
+                'isCancelled': b.isCancelled,
+                'tickets': b.tickets
+                    .map((t) => {
+                          'ticketId': t.ticketId,
+                          'qrPayload': t.qrPayload,
+                          'ticketLabel': t.ticketLabel,
+                          'isUsed': t.isUsed,
+                          'usedAt': t.usedAt?.toIso8601String(),
+                          'verifiedBy': t.verifiedBy,
+                        })
+                    .toList(),
+              })
+          .toList());
+      await prefs.setString('sannidhi_two_wheeler_bookings', twJson);
+
       final donJson = jsonEncode(_donations
           .map((d) => {
                 'transactionId': d.transactionId,
@@ -232,6 +303,14 @@ class UserActivityProvider extends ChangeNotifier {
         }
       }
       for (final b in _darshanBookings) {
+        for (final t in b.tickets) {
+          if (t.isUsed) {
+            usedIds.add(t.ticketId);
+            usedIds.add(t.qrPayload);
+          }
+        }
+      }
+      for (final b in _twoWheelerBookings) {
         for (final t in b.tickets) {
           if (t.isUsed) {
             usedIds.add(t.ticketId);
@@ -455,6 +534,42 @@ class UserActivityProvider extends ChangeNotifier {
     notifyListeners();
   }
 
+  void addTwoWheelerBooking(TwoWheelerBooking booking, {String? token, String? userId}) {
+    _twoWheelerBookings.insert(0, booking);
+    _saveToLocal();
+    notifyListeners();
+
+    _pushBookingToBackend(
+      id: booking.bookingId,
+      type: 'TWO_WHEELER',
+      title: 'Two-Wheeler Pass (${booking.slotTime})',
+      slotTime: booking.slotTime,
+      date: booking.date,
+      ticketsCount: booking.vehicleCount,
+      totalAmount: booking.totalFare,
+      tickets: booking.tickets,
+      token: token,
+      userId: userId,
+    );
+
+    NotificationService.instance.notifyBookingConfirmed(
+      bookingId: booking.bookingId,
+      title: 'Two-Wheeler Parking & Ghat Pass',
+      slotTime: booking.slotTime,
+      date: booking.date,
+      seatCount: booking.vehicleCount,
+    );
+  }
+
+  void cancelTwoWheelerBooking(String bookingId) {
+    final idx = _twoWheelerBookings.indexWhere((b) => b.bookingId == bookingId);
+    if (idx != -1) {
+      _twoWheelerBookings[idx].isCancelled = true;
+      _saveToLocal();
+      notifyListeners();
+    }
+  }
+
   void cancelShuttleBooking(String bookingId) {
     final idx = _shuttleBookings.indexWhere((b) => b.bookingId == bookingId);
     if (idx != -1) {
@@ -554,7 +669,7 @@ class UserActivityProvider extends ChangeNotifier {
       _donations.fold(0, (s, d) => s + d.amount);
 
   int get activePassCount =>
-      activeShuttleBookings.length + _darshanBookings.length;
+      activeShuttleBookings.length + _darshanBookings.length + activeTwoWheelerBookings.length;
 
   // ── Ticket ID generator ─────────────────────────────────────────────────────
 
@@ -626,6 +741,15 @@ class UserActivityProvider extends ChangeNotifier {
       }
     }
 
+    // Check two-wheeler bookings
+    for (final b in _twoWheelerBookings) {
+      for (final t in b.tickets) {
+        if (_matchesTicket(t, clean)) {
+          return t.isUsed;
+        }
+      }
+    }
+
     return false;
   }
 
@@ -663,6 +787,21 @@ class UserActivityProvider extends ChangeNotifier {
             ticket: t,
             bookingId: b.bookingId,
             type: '${b.darshanType} Pass',
+            slotTime: b.slotTime,
+            date: b.date,
+            devoteeName: 'Ramesh Kumar & Family',
+          );
+        }
+      }
+    }
+
+    for (final b in _twoWheelerBookings) {
+      for (final t in b.tickets) {
+        if (_matchesTicket(t, clean)) {
+          return (
+            ticket: t,
+            bookingId: b.bookingId,
+            type: 'Two-Wheeler Pass',
             slotTime: b.slotTime,
             date: b.date,
             devoteeName: 'Ramesh Kumar & Family',
@@ -722,6 +861,24 @@ class UserActivityProvider extends ChangeNotifier {
       }
     }
 
+    // Check in two-wheeler bookings
+    if (!found) {
+      for (final b in _twoWheelerBookings) {
+        for (final t in b.tickets) {
+          if (_matchesTicket(t, clean)) {
+            t.isUsed = true;
+            t.usedAt = actualUsedAt;
+            t.verifiedBy = verifiedBy ?? 'Gate Staff';
+            resolvedTicketId = t.ticketId;
+            resolvedTitle = 'Two-Wheeler Pass (${b.slotTime})';
+            found = true;
+            break;
+          }
+        }
+        if (found) break;
+      }
+    }
+
     // Save to global used ticket IDs set in SharedPreferences
     try {
       final prefs = await SharedPreferences.getInstance();
@@ -750,5 +907,29 @@ class UserActivityProvider extends ChangeNotifier {
     }
 
     return found;
+  }
+
+  /// Reset all bookings, passes, and donation history for a fresh start
+  Future<void> clearAllActivities() async {
+    _shuttleBookings.clear();
+    _darshanBookings.clear();
+    _twoWheelerBookings.clear();
+    _donationReceipts.clear();
+    _shuttleTickets.clear();
+    _darshanTickets.clear();
+    _donations.clear();
+
+    try {
+      final prefs = await SharedPreferences.getInstance();
+      await prefs.remove('sannidhi_shuttle_bookings');
+      await prefs.remove('sannidhi_darshan_bookings');
+      await prefs.remove('sannidhi_two_wheeler_bookings');
+      await prefs.remove('sannidhi_donations');
+      await prefs.remove('sannidhi_used_ticket_ids');
+    } catch (e) {
+      debugPrint('[UserActivity] Error clearing SharedPreferences: $e');
+    }
+
+    notifyListeners();
   }
 }

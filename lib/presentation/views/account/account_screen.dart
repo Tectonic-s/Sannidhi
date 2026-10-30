@@ -25,10 +25,12 @@ class AccountScreen extends StatelessWidget {
   Widget build(BuildContext context) {
     final l10n = AppLocalizations.of(context);
     final isTamil = l10n.currentLocale == 'ta';
-    final activity = context.watch<UserActivityProvider>();
-    final access = context.watch<AccessibilityProvider>();
+    final activity = Provider.of<UserActivityProvider?>(context);
+    final access = Provider.of<AccessibilityProvider?>(context);
     final auth = context.watch<AuthProvider>();
-    final passCount = activity.activeShuttleBookings.length + activity.darshanBookings.length;
+    final passCount = activity != null
+        ? (activity.activeShuttleBookings.length + activity.darshanBookings.length)
+        : 0;
 
     return Scaffold(
       appBar: CustomAppBar(onToggleLocale: onToggleLocale),
@@ -36,8 +38,8 @@ class AccountScreen extends StatelessWidget {
         padding: const EdgeInsets.only(left: 16, right: 16, top: 16, bottom: 110),
         children: [
           _ProfileCard(
-            passCount: activity.activePassCount,
-            totalDonated: activity.totalDonated,
+            passCount: activity?.activePassCount ?? 0,
+            totalDonated: activity?.totalDonated ?? 0,
             isTamil: isTamil,
             auth: auth,
           ),
@@ -82,14 +84,18 @@ class AccountScreen extends StatelessWidget {
             color: AppColors.info,
             title: isTamil ? 'என் செயலிலுள்ள QR பாஸ்கள்' : 'My Active QR Passes',
             subtitle: isTamil ? '$passCount பாஸ் உள்ளது' : '$passCount active pass(es)',
-            onTap: () => _showPasses(context, activity, isTamil),
+            onTap: () {
+              if (activity != null) _showPasses(context, activity, isTamil);
+            },
           ),
           _ActionTile(
             icon: Icons.receipt_long,
             color: AppColors.success,
             title: isTamil ? 'தான வரி சான்றிதழ் (80G)' : 'Donation Tax (80G) Certificates',
-            subtitle: isTamil ? '${activity.donations.length} ரசீது' : '${activity.donations.length} receipt(s)',
-            onTap: () => _show80g(context, activity, isTamil),
+            subtitle: isTamil ? '${activity?.donations.length ?? 0} ரசீது' : '${activity?.donations.length ?? 0} receipt(s)',
+            onTap: () {
+              if (activity != null) _show80g(context, activity, isTamil);
+            },
           ),
           _ActionTile(
             icon: Icons.map,
@@ -114,20 +120,21 @@ class AccountScreen extends StatelessWidget {
                 : 'Simulate temple arrival push notification & family count prompt',
             onTap: () => NotificationDemoBanner.triggerDemo(context, isTamil: isTamil),
           ),
-          _ActionTile(
-            icon: Icons.accessibility_new,
-            color: const Color(0xFFD97706),
-            title: isTamil ? 'மூத்தோர் உயர் தெளிவு மோட்' : 'Elderly High-Contrast Mode',
-            subtitle: access.isElderlyMode
-                ? (isTamil ? 'இயங்குகிறது' : 'Enabled')
-                : (isTamil ? 'இயங்கவில்லை' : 'Disabled'),
-            trailing: Switch(
-              value: access.isElderlyMode,
-              onChanged: (_) => access.toggle(),
-              activeThumbColor: const Color(0xFFD97706),
+          if (access != null)
+            _ActionTile(
+              icon: Icons.accessibility_new,
+              color: const Color(0xFFD97706),
+              title: isTamil ? 'மூத்தோர் உயர் தெளிவு மோட்' : 'Elderly High-Contrast Mode',
+              subtitle: access.isElderlyMode
+                  ? (isTamil ? 'இயங்குகிறது' : 'Enabled')
+                  : (isTamil ? 'இயங்கவில்லை' : 'Disabled'),
+              trailing: Switch(
+                value: access.isElderlyMode,
+                onChanged: (_) => access.toggle(),
+                activeThumbColor: const Color(0xFFD97706),
+              ),
+              onTap: () => access.toggle(),
             ),
-            onTap: () => access.toggle(),
-          ),
           _ActionTile(
             icon: Icons.language,
             color: AppTheme.primaryColor,

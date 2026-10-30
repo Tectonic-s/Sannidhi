@@ -2,17 +2,20 @@ class CashfreeOrder {
   final String orderId;
   final String paymentSessionId;
   final String orderStatus;
+  final String? linkUrl;
 
   const CashfreeOrder({
     required this.orderId,
     required this.paymentSessionId,
     required this.orderStatus,
+    this.linkUrl,
   });
 
   factory CashfreeOrder.fromJson(Map<String, dynamic> json) => CashfreeOrder(
         orderId:          json['order_id'] as String,
         paymentSessionId: json['payment_session_id'] as String,
-        orderStatus:      json['order_status'] as String,
+        orderStatus:      (json['order_status'] ?? 'ACTIVE') as String,
+        linkUrl:          json['link_url'] as String?,
       );
 }
 

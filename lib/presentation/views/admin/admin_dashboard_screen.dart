@@ -158,6 +158,73 @@ class _AdminDashboardScreenState extends State<AdminDashboardScreen> {
     );
   }
 
+  void _confirmResetFreshStart(BuildContext context, bool isTamil) {
+    final isDark = AppTheme.isDark(context);
+    showDialog(
+      context: context,
+      builder: (ctx) => AlertDialog(
+        backgroundColor: isDark ? const Color(0xFF18181B) : Colors.white,
+        shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(16)),
+        title: Row(
+          children: [
+            const Icon(Icons.restart_alt_rounded, color: Color(0xFF10B981), size: 22),
+            const SizedBox(width: 8),
+            Expanded(
+              child: Text(
+                isTamil ? 'புதிய தொடக்கம் (மீட்டமை)?' : 'Reset for Fresh Start?',
+                style: TextStyle(color: AppTheme.textPrimaryOf(ctx), fontWeight: FontWeight.w800),
+              ),
+            ),
+          ],
+        ),
+        content: Text(
+          isTamil
+              ? 'நிர்வாக அளவீடுகள், பயண பாஸ்கள் மற்றும் கூட்ட நெரிசல் தரவுகளை பூஜ்ஜியத்திற்கு மீட்டமைக்க விரும்புகிறீர்களா?'
+              : 'Do you want to reset all admin metrics, booking passes, gate telemetry, and footfall counters back to zero for a fresh start?',
+          style: TextStyle(color: AppTheme.textSecondaryOf(ctx)),
+        ),
+        actions: [
+          TextButton(
+            onPressed: () => Navigator.pop(ctx),
+            child: Text(isTamil ? 'ரத்து' : 'Cancel'),
+          ),
+          ElevatedButton(
+            style: ElevatedButton.styleFrom(
+              backgroundColor: const Color(0xFF10B981),
+              foregroundColor: Colors.white,
+            ),
+            onPressed: () async {
+              Navigator.pop(ctx);
+              await context.read<UserActivityProvider>().clearAllActivities();
+              if (context.mounted) {
+                context.read<MockCrowdRepository>().resetForFreshStart();
+              }
+              setState(() {
+                _backendMetrics = null;
+                _recentBookings = [];
+                _emergencyAlertActive = false;
+                _activeAlertMessage = 'Normal Operations: Queue moving smoothly';
+              });
+              if (context.mounted) {
+                ScaffoldMessenger.of(context).showSnackBar(
+                  SnackBar(
+                    content: Text(
+                      isTamil
+                          ? 'நிர்வாக மையம் புதிய தொடக்கத்திற்கு மீட்டமைக்கப்பட்டது!'
+                          : 'Admin panel and metrics reset for a fresh start!',
+                    ),
+                    backgroundColor: const Color(0xFF10B981),
+                  ),
+                );
+              }
+            },
+            child: Text(isTamil ? 'மீட்டமை' : 'Reset All'),
+          ),
+        ],
+      ),
+    );
+  }
+
   void _showBroadcastDialog(BuildContext context, bool isTamil) {
     final isDark = AppTheme.isDark(context);
     final controller = TextEditingController(text: _activeAlertMessage);
@@ -270,17 +337,30 @@ class _AdminDashboardScreenState extends State<AdminDashboardScreen> {
     final shuttle = context.watch<MockShuttleRepository>();
     final activity = context.watch<UserActivityProvider>();
     final festivalRepo = context.watch<MockFestivalRepository>();
-    final bulletin = context.watch<BulletinProvider>();
+    final bulletin = Provider.of<BulletinProvider?>(context);
 
-    // Dynamic metrics calculated from database / repositories
-    final totalTickets = _backendMetrics?['total_tickets'] ?? 1340;
-    final activeTickets = _backendMetrics?['active_tickets'] ?? 412;
-    final usedTickets = _backendMetrics?['used_tickets'] ?? 916;
-    final totalRevenue = (_backendMetrics?['total_revenue'] as num?)?.toDouble() ?? 148500.0;
-    final totalDonations = (_backendMetrics?['total_donations'] as num?)?.toDouble() ?? 84200.0;
+    // Dynamic metrics calculated from live database / activity (starts clean at 0)
+    final totalTickets = _backendMetrics?['total_tickets'] ?? 
+        (activity.darshanBookings.fold<int>(0, (sum, b) => sum + b.ticketCount) +
+         activity.shuttleBookings.fold<int>(0, (sum, b) => sum + b.seatCount) +
+         activity.twoWheelerBookings.fold<int>(0, (sum, b) => sum + b.vehicleCount));
+    final activeTickets = _backendMetrics?['active_tickets'] ?? 
+        (activity.darshanBookings.where((b) => !b.isAllUsed).fold<int>(0, (sum, b) => sum + b.ticketCount) +
+         activity.shuttleBookings.where((b) => !b.isAllUsed).fold<int>(0, (sum, b) => sum + b.seatCount) +
+         activity.twoWheelerBookings.where((b) => !b.isAllUsed).fold<int>(0, (sum, b) => sum + b.vehicleCount));
+    final usedTickets = _backendMetrics?['used_tickets'] ?? 
+        (activity.darshanBookings.fold<int>(0, (sum, b) => sum + b.usedCount) +
+         activity.shuttleBookings.fold<int>(0, (sum, b) => sum + b.usedCount) +
+         activity.twoWheelerBookings.fold<int>(0, (sum, b) => sum + b.usedCount));
+    final totalRevenue = (_backendMetrics?['total_revenue'] as num?)?.toDouble() ?? 
+        (activity.darshanBookings.fold<double>(0.0, (sum, b) => sum + b.totalAmount) +
+         activity.shuttleBookings.fold<double>(0.0, (sum, b) => sum + b.totalFare) +
+         activity.twoWheelerBookings.fold<double>(0.0, (sum, b) => sum + b.totalFare));
+    final totalDonations = (_backendMetrics?['total_donations'] as num?)?.toDouble() ?? 
+        activity.donationReceipts.fold<double>(0.0, (sum, d) => sum + d.amount);
 
     final crowdData = crowd.getCrowdData();
-    final insideCount = crowdData.currentVisitors > 0 ? crowdData.currentVisitors : 1420;
+    final insideCount = crowdData.currentVisitors;
     const maxCapacity = 3000;
     final occupancyPercent = (insideCount / maxCapacity).clamp(0.0, 1.0);
     final isDark = Theme.of(context).brightness == Brightness.dark;
@@ -352,6 +432,12 @@ class _AdminDashboardScreenState extends State<AdminDashboardScreen> {
               ),
             ),
           ),
+          // Reset for Fresh Start
+          IconButton(
+            icon: const Icon(Icons.restart_alt_rounded, color: Colors.white),
+            tooltip: isTamil ? 'புதிய தொடக்கம் (மீட்டமை)' : 'Reset for Fresh Start',
+            onPressed: () => _confirmResetFreshStart(context, isTamil),
+          ),
           // Sign Out / Switch Role
           IconButton(
             icon: const Icon(Icons.logout, color: Colors.white),
@@ -381,13 +467,15 @@ class _AdminDashboardScreenState extends State<AdminDashboardScreen> {
               const SizedBox(height: 16),
 
               // ── Live Bulletins Management (2 Core + Admin Custom) ────────
-              _buildSectionHeader(
-                isTamil ? 'நேரலைச் செய்தி & தகவல் பலகை மேலாண்மை' : 'Live Bulletins & Ticker Management',
-                Icons.view_carousel_rounded,
-              ),
-              const SizedBox(height: 10),
-              _buildLiveBulletinsManagementCard(isTamil, bulletin),
-              const SizedBox(height: 16),
+              if (bulletin != null) ...[
+                _buildSectionHeader(
+                  isTamil ? 'நேரலைச் செய்தி & தகவல் பலகை மேலாண்மை' : 'Live Bulletins & Ticker Management',
+                  Icons.view_carousel_rounded,
+                ),
+                const SizedBox(height: 10),
+                _buildLiveBulletinsManagementCard(isTamil, bulletin),
+                const SizedBox(height: 16),
+              ],
 
               // ── 1. Live Crowd & Queue Occupancy ─────────────────────────
               _buildSectionHeader(
@@ -422,7 +510,11 @@ class _AdminDashboardScreenState extends State<AdminDashboardScreen> {
                 Icons.directions_bus,
               ),
               const SizedBox(height: 10),
-              _buildTransitCard(isTamil, shuttle),
+              _buildTransitCard(
+                isTamil,
+                shuttle,
+                activity.shuttleBookings.fold<int>(0, (s, b) => s + b.seatCount),
+              ),
               const SizedBox(height: 16),
 
               // ── 5. Gate Health & Operators ──────────────────────────────
@@ -484,10 +576,15 @@ class _AdminDashboardScreenState extends State<AdminDashboardScreen> {
           BoxShadow(color: Color(0x08000000), blurRadius: 6, offset: Offset(0, 2)),
         ],
       ),
-      child: Row(
-        mainAxisAlignment: MainAxisAlignment.spaceBetween,
+      child: Wrap(
+        alignment: WrapAlignment.spaceBetween,
+        runAlignment: WrapAlignment.center,
+        crossAxisAlignment: WrapCrossAlignment.center,
+        spacing: 12,
+        runSpacing: 8,
         children: [
           Row(
+            mainAxisSize: MainAxisSize.min,
             children: [
               Container(
                 width: 10,
@@ -524,6 +621,7 @@ class _AdminDashboardScreenState extends State<AdminDashboardScreen> {
             ),
           ),
           Row(
+            mainAxisSize: MainAxisSize.min,
             children: [
               Icon(
                 _autoRefreshEnabled ? Icons.bolt : Icons.pause_circle_outline,
@@ -720,7 +818,9 @@ class _AdminDashboardScreenState extends State<AdminDashboardScreen> {
                     child: Column(
                       crossAxisAlignment: CrossAxisAlignment.start,
                       children: [
-                        Row(
+                        Wrap(
+                          spacing: 6,
+                          runSpacing: 4,
                           children: [
                             Container(
                               padding: const EdgeInsets.symmetric(horizontal: 6, vertical: 2),
@@ -737,7 +837,6 @@ class _AdminDashboardScreenState extends State<AdminDashboardScreen> {
                                 ),
                               ),
                             ),
-                            const SizedBox(width: 6),
                             Container(
                               padding: const EdgeInsets.symmetric(horizontal: 5, vertical: 1.5),
                               decoration: BoxDecoration(
@@ -1087,24 +1186,27 @@ class _AdminDashboardScreenState extends State<AdminDashboardScreen> {
           Row(
             mainAxisAlignment: MainAxisAlignment.spaceBetween,
             children: [
-              Column(
-                crossAxisAlignment: CrossAxisAlignment.start,
-                children: [
-                  Text(
-                    isTamil ? 'கோயில் வளாக கொள்ளளவு' : 'Temple Safe Capacity',
-                    style: TextStyle(fontSize: 12, color: AppTheme.textSecondaryOf(context)),
-                  ),
-                  const SizedBox(height: 2),
-                  Text(
-                    '$insideCount / $maxCapacity',
-                    style: TextStyle(
-                      fontSize: 22,
-                      fontWeight: FontWeight.w900,
-                      color: AppTheme.textPrimaryOf(context),
+              Expanded(
+                child: Column(
+                  crossAxisAlignment: CrossAxisAlignment.start,
+                  children: [
+                    Text(
+                      isTamil ? 'கோயில் வளாக கொள்ளளவு' : 'Temple Safe Capacity',
+                      style: TextStyle(fontSize: 12, color: AppTheme.textSecondaryOf(context)),
                     ),
-                  ),
-                ],
+                    const SizedBox(height: 2),
+                    Text(
+                      '$insideCount / $maxCapacity',
+                      style: TextStyle(
+                        fontSize: 22,
+                        fontWeight: FontWeight.w900,
+                        color: AppTheme.textPrimaryOf(context),
+                      ),
+                    ),
+                  ],
+                ),
               ),
+              const SizedBox(width: 8),
               Container(
                 padding: const EdgeInsets.symmetric(horizontal: 10, vertical: 6),
                 decoration: BoxDecoration(
@@ -1245,20 +1347,27 @@ class _AdminDashboardScreenState extends State<AdminDashboardScreen> {
           Row(
             mainAxisAlignment: MainAxisAlignment.spaceBetween,
             children: [
-              Row(
-                children: [
-                  const Icon(Icons.analytics_rounded, size: 16, color: Color(0xFFD97706)),
-                  const SizedBox(width: 6),
-                  Text(
-                    isTamil ? '3-நிலை குடும்ப & யாத்ரிகர் பகுப்பாய்வு' : '3-Tier Footfall & Family Estimation',
-                    style: TextStyle(
-                      fontSize: 12,
-                      fontWeight: FontWeight.w800,
-                      color: AppTheme.textPrimaryOf(context),
+              Expanded(
+                child: Row(
+                  children: [
+                    const Icon(Icons.analytics_rounded, size: 16, color: Color(0xFFD97706)),
+                    const SizedBox(width: 6),
+                    Expanded(
+                      child: Text(
+                        isTamil ? '3-நிலை குடும்ப & யாத்ரிகர் பகுப்பாய்வு' : '3-Tier Footfall & Family Estimation',
+                        style: TextStyle(
+                          fontSize: 12,
+                          fontWeight: FontWeight.w800,
+                          color: AppTheme.textPrimaryOf(context),
+                        ),
+                        maxLines: 1,
+                        overflow: TextOverflow.ellipsis,
+                      ),
                     ),
-                  ),
-                ],
+                  ],
+                ),
               ),
+              const SizedBox(width: 6),
               Container(
                 padding: const EdgeInsets.symmetric(horizontal: 7, vertical: 2.5),
                 decoration: BoxDecoration(
@@ -1668,10 +1777,10 @@ class _AdminDashboardScreenState extends State<AdminDashboardScreen> {
                 ),
                 child: Row(
                   children: [
-                    Icon(Icons.arrow_upward, size: 14, color: isDark ? const Color(0xFF4ADE80) : const Color(0xFF059669)),
+                    Icon(Icons.check_circle_outline, size: 14, color: isDark ? const Color(0xFF4ADE80) : const Color(0xFF059669)),
                     const SizedBox(width: 4),
                     Text(
-                      isTamil ? '+14% இன்று' : '+14% Today',
+                      isTamil ? 'புதிய தொடக்கம்' : 'Fresh Start',
                       style: TextStyle(
                         fontSize: 11,
                         fontWeight: FontWeight.w800,
@@ -1753,7 +1862,7 @@ class _AdminDashboardScreenState extends State<AdminDashboardScreen> {
   }
 
   // ── 4. Transit & Shuttle Operations ───────────────────────────────────────
-  Widget _buildTransitCard(bool isTamil, MockShuttleRepository shuttle) {
+  Widget _buildTransitCard(bool isTamil, MockShuttleRepository shuttle, [int passengersFerried = 0]) {
     final isDark = AppTheme.isDark(context);
     return Container(
       padding: const EdgeInsets.all(16),
@@ -1803,7 +1912,7 @@ class _AdminDashboardScreenState extends State<AdminDashboardScreen> {
               Expanded(
                 child: _transitItem(
                   label: isTamil ? 'பயணிகள் இன்று' : 'Passengers Ferried',
-                  value: '1,120',
+                  value: '$passengersFerried',
                   icon: Icons.airline_seat_recline_normal,
                 ),
               ),
@@ -2025,13 +2134,15 @@ class _AdminDashboardScreenState extends State<AdminDashboardScreen> {
       children: [
         Icon(icon, size: 18, color: isDark ? const Color(0xFFF97316) : AppTheme.primaryColor),
         const SizedBox(width: 8),
-        Text(
-          title,
-          style: TextStyle(
-            fontSize: 14.5,
-            fontWeight: FontWeight.w800,
-            color: AppTheme.textPrimaryOf(context),
-            letterSpacing: 0.2,
+        Expanded(
+          child: Text(
+            title,
+            style: TextStyle(
+              fontSize: 14.5,
+              fontWeight: FontWeight.w800,
+              color: AppTheme.textPrimaryOf(context),
+              letterSpacing: 0.2,
+            ),
           ),
         ),
       ],

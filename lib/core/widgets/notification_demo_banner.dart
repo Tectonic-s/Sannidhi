@@ -3,7 +3,6 @@ import 'package:flutter/services.dart';
 
 import '../constants/app_theme.dart';
 import '../services/geofence_service.dart';
-import '../../presentation/views/home/family_visitor_prompt_bottom_sheet.dart';
 
 class NotificationDemoBanner extends StatelessWidget {
   final bool isTamil;
@@ -19,10 +18,7 @@ class NotificationDemoBanner extends StatelessWidget {
     await GeofenceService.instance.simulateHardwareTrigger(true);
 
     if (context.mounted) {
-      // 2. Present the in-app Family Visitor Prompt Bottom Sheet
-      FamilyVisitorPromptBottomSheet.show(context, isTamil: isTamil);
-
-      // 3. Confirm with floating SnackBar
+      // 2. Confirm with floating SnackBar
       ScaffoldMessenger.of(context).showSnackBar(
         SnackBar(
           behavior: SnackBarBehavior.floating,

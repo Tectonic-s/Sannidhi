@@ -1,6 +1,8 @@
 import 'package:flutter/material.dart';
+import 'package:flutter_localizations/flutter_localizations.dart';
 import 'package:flutter_test/flutter_test.dart';
 import 'package:provider/provider.dart';
+import 'package:shared_preferences/shared_preferences.dart';
 import 'package:sannidhi/core/l10n/app_localizations.dart';
 import 'package:sannidhi/core/services/firebase_service.dart';
 import 'package:sannidhi/core/services/geofence_service.dart';
@@ -18,6 +20,11 @@ import 'package:sannidhi/providers/bulletin_provider.dart';
 import 'package:sannidhi/providers/user_activity_provider.dart';
 
 void main() {
+  TestWidgetsFlutterBinding.ensureInitialized();
+
+  setUp(() {
+    SharedPreferences.setMockInitialValues({});
+  });
   group('1. Slot Picker: Remove Passed Times (Not Just Striking Off)', () {
     testWidgets('Renders only active future slots without lineThrough styling', (tester) async {
       final auth = AuthProvider();
@@ -62,6 +69,10 @@ void main() {
 
   group('2. Immediate Sign In Prompt On Sign Out', () {
     testWidgets('Tapping Sign Out in AccountScreen immediately pushes LoginScreen', (tester) async {
+      tester.view.physicalSize = const Size(800, 1600);
+      tester.view.devicePixelRatio = 1.0;
+      addTearDown(tester.view.resetPhysicalSize);
+
       final auth = AuthProvider();
       await auth.login('devotee@sannidhi.org', 'Pass123!@#');
       final access = AccessibilityProvider();
@@ -73,7 +84,13 @@ void main() {
             ChangeNotifierProvider<AccessibilityProvider>.value(value: access),
           ],
           child: const MaterialApp(
-            localizationsDelegates: [AppLocalizations.delegate],
+            supportedLocales: [Locale('en'), Locale('ta')],
+            localizationsDelegates: [
+              AppLocalizations.delegate,
+              GlobalMaterialLocalizations.delegate,
+              GlobalWidgetsLocalizations.delegate,
+              GlobalCupertinoLocalizations.delegate,
+            ],
             home: AccountScreen(
               onToggleLocale: _dummyVoid,
             ),
@@ -120,7 +137,13 @@ void main() {
           ],
           child: const MaterialApp(
             locale: Locale('ta'),
-            localizationsDelegates: [AppLocalizations.delegate],
+            supportedLocales: [Locale('en'), Locale('ta')],
+            localizationsDelegates: [
+              AppLocalizations.delegate,
+              GlobalMaterialLocalizations.delegate,
+              GlobalWidgetsLocalizations.delegate,
+              GlobalCupertinoLocalizations.delegate,
+            ],
             home: AdminDashboardScreen(),
           ),
         ),

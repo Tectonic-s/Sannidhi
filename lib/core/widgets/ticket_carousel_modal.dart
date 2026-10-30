@@ -17,7 +17,7 @@ import 'package:sannidhi/providers/auth_provider.dart';
 import 'package:sannidhi/providers/user_activity_provider.dart';
 import '../l10n/app_localizations.dart';
 
-enum TicketCarouselType { shuttle, darshan }
+enum TicketCarouselType { shuttle, darshan, twoWheeler }
 
 class TicketCarouselModal extends StatefulWidget {
   final List<IndividualTicket> tickets;
@@ -211,9 +211,11 @@ class _TicketCarouselModalState extends State<TicketCarouselModal> {
   }
 
   bool get _isShuttle => widget.type == TicketCarouselType.shuttle;
+  bool get _isTwoWheeler => widget.type == TicketCarouselType.twoWheeler;
 
-  Color get _accentColor =>
-      _isShuttle ? AppColors.templeMaroon : AppColors.deepSaffron;
+  Color get _accentColor => _isTwoWheeler
+      ? const Color(0xFF0D9488)
+      : (_isShuttle ? AppColors.templeMaroon : AppColors.deepSaffron);
 
   @override
   Widget build(BuildContext context) {
@@ -332,7 +334,9 @@ class _TicketCarouselModalState extends State<TicketCarouselModal> {
               borderRadius: BorderRadius.circular(8),
             ),
             child: Icon(
-                _isShuttle ? Icons.directions_bus : Icons.visibility,
+                _isTwoWheeler
+                    ? Icons.two_wheeler_rounded
+                    : (_isShuttle ? Icons.directions_bus : Icons.visibility),
                 color: _accentColor,
                 size: 20),
           ),
@@ -342,9 +346,15 @@ class _TicketCarouselModalState extends State<TicketCarouselModal> {
               crossAxisAlignment: CrossAxisAlignment.start,
               children: [
                 Text(
-                  _isShuttle
-                      ? (isTamil ? 'பேருந்து பயண பாஸ்' : 'Shuttle Transit Pass')
-                      : (isTamil ? 'தரிசன பாஸ் — ${widget.darshanType ?? ''}' : 'Darshan Pass — ${widget.darshanType ?? ''}'),
+                  _isTwoWheeler
+                      ? (isTamil
+                          ? 'இருசக்கர வாகன அனுமதி & நிறுத்தம்'
+                          : 'Two-Wheeler Parking & Pass')
+                      : (_isShuttle
+                          ? (isTamil ? 'பேருந்து பயண பாஸ்' : 'Shuttle Transit Pass')
+                          : (isTamil
+                              ? 'தரிசன பாஸ் — ${widget.darshanType ?? ''}'
+                              : 'Darshan Pass — ${widget.darshanType ?? ''}')),
                   style: TextStyle(
                       fontSize: isTamil ? 13.5 : 14,
                       fontWeight: FontWeight.w700,
@@ -597,6 +607,7 @@ class _TicketCardState extends State<_TicketCard>
   }
 
   bool get _isShuttle => widget.type == TicketCarouselType.shuttle;
+  bool get _isTwoWheeler => widget.type == TicketCarouselType.twoWheeler;
 
   bool get _isExpired =>
       widget.ticket.isExpired(fallbackSlot: widget.slotTime, fallbackDate: widget.date);
@@ -732,9 +743,11 @@ class _TicketCardState extends State<_TicketCard>
           ),
           const SizedBox(height: 6),
           Text(
-            _isShuttle
-                ? (isTamil ? 'பேருந்து பயண பாஸ்' : 'Shuttle Transit Pass')
-                : (isTamil ? 'தரிசன பாஸ்' : 'Darshan Pass'),
+            _isTwoWheeler
+                ? (isTamil ? 'இருசக்கர வாகன அனுமதி' : 'Two-Wheeler Pass')
+                : (_isShuttle
+                    ? (isTamil ? 'பேருந்து பயண பாஸ்' : 'Shuttle Transit Pass')
+                    : (isTamil ? 'தரிசன பாஸ்' : 'Darshan Pass')),
             style: const TextStyle(
                 color: Colors.white,
                 fontSize: 18,
@@ -758,7 +771,18 @@ class _TicketCardState extends State<_TicketCard>
                 ],
               ),
             ),
-          if (!_isShuttle && widget.darshanType != null)
+          if (_isTwoWheeler)
+            Padding(
+              padding: const EdgeInsets.only(top: 4),
+              child: Text(
+                widget.pickupLocation ??
+                    (isTamil
+                        ? 'அடிவாரம் இருசக்கர வாகன நிறுத்துமிடம் (ஹெல்மெட் லாக்கர்)'
+                        : 'Adivaram Two-Wheeler Bay (Helmet Lockers)'),
+                style: const TextStyle(color: Colors.white70, fontSize: 11),
+              ),
+            ),
+          if (!_isShuttle && !_isTwoWheeler && widget.darshanType != null)
             Padding(
               padding: const EdgeInsets.only(top: 4),
               child: Text(widget.darshanType!,

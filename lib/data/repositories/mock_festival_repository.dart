@@ -187,14 +187,7 @@ class MockFestivalRepository with ChangeNotifier implements FestivalRepository {
 
   @override
   List<FestivalModel> getFestivals() {
-    final now = DateTime.now();
-    final today = DateTime(now.year, now.month, now.day);
-    return _festivals.where((f) {
-      final d = DateTime.tryParse(f.date);
-      if (d == null) return false;
-      final targetDay = DateTime(d.year, d.month, d.day);
-      return !targetDay.isBefore(today);
-    }).toList()
+    return List<FestivalModel>.from(_festivals)
       ..sort((a, b) => a.date.compareTo(b.date));
   }
 
@@ -202,7 +195,16 @@ class MockFestivalRepository with ChangeNotifier implements FestivalRepository {
 
   @override
   List<FestivalModel> getUpcomingFestivals({int limit = 5}) {
-    return getFestivals().take(limit).toList();
+    final now = DateTime.now();
+    final today = DateTime(now.year, now.month, now.day);
+    final upcoming = _festivals.where((f) {
+      final d = DateTime.tryParse(f.date);
+      if (d == null) return false;
+      final targetDay = DateTime(d.year, d.month, d.day);
+      return !targetDay.isBefore(today);
+    }).toList()
+      ..sort((a, b) => a.date.compareTo(b.date));
+    return upcoming.take(limit).toList();
   }
 
   @override

@@ -4,7 +4,6 @@ import 'package:url_launcher/url_launcher.dart';
 
 import '../../../core/constants/app_theme.dart';
 import '../../../core/l10n/app_localizations.dart';
-import '../../../core/services/geofence_service.dart';
 import '../../../core/widgets/custom_app_bar.dart';
 import '../../../core/widgets/devotee_avatar.dart';
 import '../../../core/widgets/micro_animations.dart';
@@ -16,7 +15,6 @@ import '../../../providers/user_activity_provider.dart';
 import '../account/account_screen.dart';
 import '../donation/donation_screen.dart';
 import '../facility/facility_locator_screen.dart';
-import '../home/family_visitor_prompt_bottom_sheet.dart';
 import '../services/services_screen.dart';
 
 class MoreScreen extends StatelessWidget {
@@ -120,11 +118,7 @@ class MoreScreen extends StatelessWidget {
           const SizedBox(height: 10),
           _buildAccessibilityTile(context, access, isTamil),
           const SizedBox(height: 10),
-          _buildFamilySizeConfigTile(context, isTamil),
-          const SizedBox(height: 10),
           _buildNotificationDemoTile(context, isTamil),
-          const SizedBox(height: 10),
-          _buildBackendConfigTile(context, isTamil),
           const SizedBox(height: 20),
 
           // 5. Pilgrim Helpline & Emergency Assistance
@@ -907,144 +901,7 @@ class MoreScreen extends StatelessWidget {
     );
   }
 
-  Widget _buildBackendConfigTile(BuildContext context, bool isTamil) {
-    final auth = context.watch<AuthProvider>();
-    final currentUrl = AuthProvider.backendUrl;
 
-    return Container(
-      decoration: BoxDecoration(
-        color: Theme.of(context).cardColor,
-        borderRadius: BorderRadius.circular(16),
-        border: Border.all(color: AppTheme.borderColor(context)),
-      ),
-      child: ListTile(
-        contentPadding: const EdgeInsets.symmetric(horizontal: 16, vertical: 4),
-        leading: Container(
-          width: 40,
-          height: 40,
-          decoration: BoxDecoration(
-            color: const Color(0xFF0284C7).withValues(alpha: 0.12),
-            borderRadius: BorderRadius.circular(10),
-          ),
-          child: const Icon(Icons.dns_rounded, color: Color(0xFF0284C7), size: 22),
-        ),
-        title: Text(
-          isTamil ? 'பின்னணி API சேவையக இணைப்பு' : 'Backend API Server URL',
-          style: TextStyle(
-            fontSize: 14,
-            fontWeight: FontWeight.w700,
-            color: AppTheme.textPrimaryOf(context),
-          ),
-        ),
-        subtitle: Text(
-          currentUrl,
-          style: const TextStyle(
-            fontSize: 11.5,
-            fontWeight: FontWeight.w600,
-            color: Color(0xFF0284C7),
-          ),
-          maxLines: 1,
-          overflow: TextOverflow.ellipsis,
-        ),
-        trailing: const Icon(Icons.edit_outlined, size: 20),
-        onTap: () => _showEditBackendUrlDialog(context, auth, currentUrl, isTamil),
-      ),
-    );
-  }
-
-  void _showEditBackendUrlDialog(
-    BuildContext context,
-    AuthProvider auth,
-    String currentUrl,
-    bool isTamil,
-  ) {
-    final controller = TextEditingController(text: currentUrl);
-    showDialog(
-      context: context,
-      builder: (dialogCtx) => AlertDialog(
-        shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(16)),
-        title: Row(
-          children: [
-            const Icon(Icons.dns_rounded, color: Color(0xFF0284C7)),
-            const SizedBox(width: 8),
-            Text(
-              isTamil ? 'API முகவரியை மாற்றவும்' : 'Edit Backend Server URL',
-              style: const TextStyle(fontSize: 16, fontWeight: FontWeight.w800),
-            ),
-          ],
-        ),
-        content: Column(
-          mainAxisSize: MainAxisSize.min,
-          crossAxisAlignment: CrossAxisAlignment.start,
-          children: [
-            Text(
-              isTamil
-                  ? 'உங்கள் கணினியின் தற்போதைய IP முகவரியை உள்ளிடவும் (எ.கா: http://192.168.1.3:3000):'
-                  : 'Enter the backend IP/host (e.g. http://192.168.1.3:3000):',
-              style: TextStyle(fontSize: 12, color: AppTheme.textSecondaryOf(context)),
-            ),
-            const SizedBox(height: 12),
-            TextField(
-              controller: controller,
-              decoration: InputDecoration(
-                hintText: 'http://192.168.1.3:3000',
-                border: OutlineInputBorder(borderRadius: BorderRadius.circular(10)),
-                prefixIcon: const Icon(Icons.link, size: 20),
-              ),
-            ),
-          ],
-        ),
-        actions: [
-          TextButton(
-            onPressed: () => Navigator.pop(dialogCtx),
-            child: Text(isTamil ? 'ரத்து' : 'Cancel'),
-          ),
-          ElevatedButton(
-            style: ElevatedButton.styleFrom(
-              backgroundColor: const Color(0xFF0284C7),
-              foregroundColor: Colors.white,
-            ),
-            onPressed: () async {
-              final newUrl = controller.text.trim();
-              if (newUrl.isNotEmpty) {
-                await auth.setBackendUrl(newUrl);
-                if (context.mounted) {
-                  Navigator.pop(dialogCtx);
-                  ScaffoldMessenger.of(context).showSnackBar(
-                    SnackBar(
-                      content: Text(
-                        isTamil ? 'சேவையக முகவரி புதுப்பிக்கப்பட்டது' : 'Backend URL updated to $newUrl',
-                      ),
-                      backgroundColor: const Color(0xFF16A34A),
-                    ),
-                  );
-                }
-              }
-            },
-            child: Text(isTamil ? 'சேமி' : 'Save'),
-          ),
-        ],
-      ),
-    );
-  }
-
-  Widget _buildFamilySizeConfigTile(BuildContext context, bool isTamil) {
-    final geofence = GeofenceService.instance;
-    final groupCount = geofence.currentSessionDevoteeCount;
-
-    return _buildActionTile(
-      context: context,
-      icon: Icons.family_restroom_rounded,
-      color: const Color(0xFFD97706),
-      title: isTamil
-          ? 'குடும்ப உறுப்பினர் எண்ணிக்கை (தரிசனம்)'
-          : 'Family Pilgrimage Size (3-Tier Footfall)',
-      subtitle: isTamil
-          ? 'தற்போது: $groupCount பக்தர்கள் (குழந்தைகள் உட்பட • மாற்ற தட்டவும்)'
-          : 'Current: $groupCount devotees (Kids & family • Tap to customize)',
-      onTap: () => FamilyVisitorPromptBottomSheet.show(context, isTamil: isTamil),
-    );
-  }
 
   Widget _buildNotificationDemoTile(BuildContext context, bool isTamil) {
     return _buildActionTile(

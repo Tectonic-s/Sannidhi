@@ -28,7 +28,7 @@ class AuthProvider with ChangeNotifier {
   bool get isAdmin => _currentUser?.isAdmin ?? false;
   String get token => _currentUser?.token ?? '';
 
-  static String _activeBackendUrl = 'http://192.168.1.3:3000';
+  static String _activeBackendUrl = 'http://192.168.1.14:3000';
 
   static String get backendUrl {
     const defined = String.fromEnvironment('BACKEND_BASE_URL');

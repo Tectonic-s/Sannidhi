@@ -465,9 +465,10 @@ class _GateStaffScreenState extends State<GateStaffScreen>
                 ),
               ],
             ),
-            child: Column(
-              mainAxisSize: MainAxisSize.min,
-              children: [
+            child: SingleChildScrollView(
+              child: Column(
+                mainAxisSize: MainAxisSize.min,
+                children: [
                 // 1. Green Success Header Banner
                 Container(
                   width: double.infinity,
@@ -627,6 +628,7 @@ class _GateStaffScreenState extends State<GateStaffScreen>
               ],
             ),
           ),
+          ),
         ),
       ),
     ).then((_) {
@@ -683,59 +685,60 @@ class _GateStaffScreenState extends State<GateStaffScreen>
                 ),
               ],
             ),
-            child: Column(
-              mainAxisSize: MainAxisSize.min,
-              children: [
-                // 1. Red Alert Header Banner
-                Container(
-                  width: double.infinity,
-                  padding: const EdgeInsets.symmetric(vertical: 22, horizontal: 20),
-                  decoration: const BoxDecoration(
-                    color: Color(0xFFDC2626),
-                    borderRadius: BorderRadius.vertical(top: Radius.circular(21)),
-                  ),
-                  child: Column(
-                    children: [
-                      Container(
-                        padding: const EdgeInsets.all(14),
-                        decoration: BoxDecoration(
-                          color: Colors.white.withValues(alpha: 0.22),
-                          shape: BoxShape.circle,
-                        ),
-                        child: const Icon(
-                          Icons.warning_amber_rounded,
-                          size: 46,
-                          color: Colors.white,
-                        ),
-                      ),
-                      const SizedBox(height: 12),
-                      Text(
-                        isTamil ? 'பாஸ் ஏற்கனவே ஸ்கேன் செய்யப்பட்டது!' : 'PASS ALREADY SCANNED!',
-                        textAlign: TextAlign.center,
-                        style: const TextStyle(
-                          color: Colors.white,
-                          fontSize: 18.5,
-                          fontWeight: FontWeight.w900,
-                          letterSpacing: 0.5,
-                        ),
-                      ),
-                      const SizedBox(height: 6),
-                      Container(
-                        padding: const EdgeInsets.symmetric(horizontal: 10, vertical: 4),
-                        decoration: BoxDecoration(
-                          color: Colors.black.withValues(alpha: 0.25),
-                          borderRadius: BorderRadius.circular(20),
-                        ),
-                        child: Text(
-                          isTamil ? 'நுழைவு நிராகரிக்கப்பட்டது • USED' : 'ENTRY REJECTED • ALREADY USED',
-                          style: const TextStyle(
+            child: SingleChildScrollView(
+              child: Column(
+                mainAxisSize: MainAxisSize.min,
+                children: [
+                  // 1. Red Alert Header Banner
+                  Container(
+                    width: double.infinity,
+                    padding: const EdgeInsets.symmetric(vertical: 22, horizontal: 20),
+                    decoration: const BoxDecoration(
+                      color: Color(0xFFDC2626),
+                      borderRadius: BorderRadius.vertical(top: Radius.circular(21)),
+                    ),
+                    child: Column(
+                      children: [
+                        Container(
+                          padding: const EdgeInsets.all(14),
+                          decoration: BoxDecoration(
+                            color: Colors.white.withValues(alpha: 0.22),
+                            shape: BoxShape.circle,
+                          ),
+                          child: const Icon(
+                            Icons.warning_amber_rounded,
+                            size: 46,
                             color: Colors.white,
-                            fontSize: 12,
-                            fontWeight: FontWeight.w800,
-                            letterSpacing: 0.8,
                           ),
                         ),
-                      ),
+                        const SizedBox(height: 12),
+                        Text(
+                          isTamil ? 'பாஸ் ஏற்கனவே ஸ்கேன் செய்யப்பட்டது!' : 'PASS ALREADY SCANNED!',
+                          textAlign: TextAlign.center,
+                          style: const TextStyle(
+                            color: Colors.white,
+                            fontSize: 18.5,
+                            fontWeight: FontWeight.w900,
+                            letterSpacing: 0.5,
+                          ),
+                        ),
+                        const SizedBox(height: 6),
+                        Container(
+                          padding: const EdgeInsets.symmetric(horizontal: 10, vertical: 4),
+                          decoration: BoxDecoration(
+                            color: Colors.black.withValues(alpha: 0.25),
+                            borderRadius: BorderRadius.circular(20),
+                          ),
+                          child: Text(
+                            isTamil ? 'நுழைவு நிராகரிக்கப்பட்டது • பாஸ் முடக்கப்பட்டது' : 'DUPLICATE SCAN • ADMISSION DENIED',
+                            style: const TextStyle(
+                              color: Colors.white,
+                              fontSize: 12,
+                              fontWeight: FontWeight.w800,
+                              letterSpacing: 0.8,
+                            ),
+                          ),
+                        ),
                     ],
                   ),
                 ),
@@ -838,6 +841,7 @@ class _GateStaffScreenState extends State<GateStaffScreen>
                 ),
               ],
             ),
+          ),
           ),
         ),
       ),

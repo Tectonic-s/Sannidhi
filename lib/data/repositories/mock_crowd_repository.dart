@@ -6,10 +6,10 @@ import '../models/crowd_telemetry_model.dart';
 
 class MockCrowdRepository with ChangeNotifier implements CrowdRepository {
   CrowdTelemetryModel _crowdData = CrowdTelemetryModel(
-    status: 'moderate',
-    estimatedWaitMinutes: 25,
+    status: 'low',
+    estimatedWaitMinutes: 5,
     timestamp: DateTime.now().toIso8601String(),
-    currentVisitors: 1250,
+    currentVisitors: 0,
   );
 
   // ── Dual-Source Deduplication (GPS Geofence + Gate Ticket Scans) ─────────
@@ -20,9 +20,9 @@ class MockCrowdRepository with ChangeNotifier implements CrowdRepository {
   int _overlapDeduplicatedCount = 0;
 
   // ── 3-Tier Multiplier & Family Estimation Telemetry ──────────────────────
-  int _tier1BookingLinkedCount = 420;
-  int _tier2DeclaredCount = 580;
-  final int _tier3UnlinkedDevices = 140;
+  int _tier1BookingLinkedCount = 0;
+  int _tier2DeclaredCount = 0;
+  final int _tier3UnlinkedDevices = 0;
 
   double _demographicMultiplier = 1.8; // default weekday: 1.8x
   String _multiplierMode = 'weekday'; // 'weekday' (1.8x), 'weekend' (2.5x), 'festival' (3.2x), 'custom'
@@ -84,6 +84,23 @@ class MockCrowdRepository with ChangeNotifier implements CrowdRepository {
       estimatedWaitMinutes: _waitFromCount(totalEstimatedFootfall),
       timestamp: DateTime.now().toIso8601String(),
     );
+    notifyListeners();
+  }
+
+  void resetForFreshStart() {
+    _crowdData = CrowdTelemetryModel(
+      status: 'low',
+      estimatedWaitMinutes: 5,
+      timestamp: DateTime.now().toIso8601String(),
+      currentVisitors: 0,
+    );
+    _insideGeofenceDevotees.clear();
+    _scannedTicketDevotees.clear();
+    _geofenceGroupCounts.clear();
+    _scannedPassGroupCounts.clear();
+    _overlapDeduplicatedCount = 0;
+    _tier1BookingLinkedCount = 0;
+    _tier2DeclaredCount = 0;
     notifyListeners();
   }
 
